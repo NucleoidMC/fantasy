@@ -1,0 +1,5 @@
+accessWidener v1 named
+
+accessible class net/minecraft/server/world/ThreadedAnvilChunkStorage$EntityTracker
+
+accessible field net/minecraft/world/GameRules$IntRule value I

@@ -1,0 +1,15 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "xyz.nucleoid.fantasy.mixin",
+  "compatibilityLevel": "JAVA_8",
+  "mixins": [
+    "MinecraftServerAccess",
+    "bubble.PlayerManagerMixin",
+    "bubble.ServerPlayerEntityMixin",
+    "registry.SimpleRegistryMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

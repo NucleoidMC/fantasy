@@ -1,0 +1,37 @@
+# gradle
+
+.gradle/
+build/
+out/
+classes/
+
+# eclipse
+
+*.launch
+
+# idea
+
+.idea/*
+!.idea/codeStyles
+!.idea/inspectionProfiles
+
+*.iml
+*.ipr
+*.iws
+
+# vscode
+
+.settings/
+.vscode/
+bin/
+.classpath
+.project
+
+# fabric
+
+run/
+
+ci_version.json
+
+# Why though? I don't know
+/logs/latest.log

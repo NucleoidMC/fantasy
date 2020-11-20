@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "id": "fantasy",
+  "version": "${version}",
+  "name": "Fantasy",
+  "description": "Dynamic dimensions",
+  "authors": ["Nucleoid Contributors"],
+  "license": "LGPLv3",
+  "environment": "*",
+  "entrypoints": {
+    "main": []
+  },
+  "mixins": ["fantasy.mixins.json"],
+  "accessWidener": "fantasy.accesswidener",
+  "depends": {
+    "fabricloader": ">=0.9.1",
+    "fabric": "*",
+    "minecraft": "1.16.x"
+  }
+}
