@@ -42,6 +42,9 @@ public final class PlayerSnapshot {
 
         player.fromTag(this.playerData);
 
+        // force synchronize the updated gamemode
+        player.setGameMode(player.interactionManager.getGameMode());
+
         player.setFireTicks(0);
         player.stopFallFlying();
         player.fallDistance = 0.0F;

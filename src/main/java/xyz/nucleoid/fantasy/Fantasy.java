@@ -29,11 +29,9 @@ import xyz.nucleoid.fantasy.util.VoidWorldProgressListener;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.function.Supplier;
 
 public final class Fantasy {
@@ -45,6 +43,7 @@ public final class Fantasy {
     private final MinecraftServer server;
     private final MinecraftServerAccess serverAccess;
 
+    private final Queue<Runnable> taskQueue = new ConcurrentLinkedQueue<>();
     private final Set<ServerWorld> deletionQueue = new ReferenceOpenHashSet<>();
 
     static {
@@ -66,7 +65,16 @@ public final class Fantasy {
         return instance;
     }
 
+    void enqueueNextTick(Runnable task) {
+        this.taskQueue.add(task);
+    }
+
     private void tick() {
+        Runnable task;
+        while ((task = this.taskQueue.poll()) != null) {
+            task.run();
+        }
+
         if (!this.deletionQueue.isEmpty()) {
             this.deletionQueue.removeIf(this::tickDeleteWorld);
         }

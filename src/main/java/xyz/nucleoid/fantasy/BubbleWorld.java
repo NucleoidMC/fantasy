@@ -18,7 +18,10 @@ import xyz.nucleoid.fantasy.util.PlayerSnapshot;
 import xyz.nucleoid.fantasy.util.VoidWorldProgressListener;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 final class BubbleWorld extends ServerWorld {
     private final Fantasy fantasy;
@@ -154,7 +157,12 @@ final class BubbleWorld extends ServerWorld {
 
         PlayerSnapshot snapshot = this.players.remove(player.getUuid());
         if (snapshot != null) {
-            snapshot.restore(player);
+            // this might be called from a player being teleported out of the dimension
+            // in that case, we don't want to recursively teleport: wait for next tick to restore
+            this.fantasy.enqueueNextTick(() -> {
+                snapshot.restore(player);
+            });
+
             return true;
         }
 
