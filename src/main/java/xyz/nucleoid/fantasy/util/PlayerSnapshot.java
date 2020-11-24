@@ -48,5 +48,19 @@ public final class PlayerSnapshot {
         player.setFireTicks(0);
         player.stopFallFlying();
         player.fallDistance = 0.0F;
+
+        AttributeContainer attributes = player.getAttributes();
+        for (EntityAttribute attribute : Registry.ATTRIBUTE) {
+            if (!attributes.hasAttribute(attribute)) {
+                continue;
+            }
+
+            EntityAttributeInstance attributeInstance = attributes.getCustomInstance(attribute);
+            Set<UUID> modifiers = attributeInstance.getModifiers().stream()
+                    .map(EntityAttributeModifier::getId)
+                    .collect(Collectors.toSet());
+
+            modifiers.forEach(attributeInstance::removeModifier);
+        }
     }
 }
