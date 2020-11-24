@@ -31,6 +31,7 @@ public final class BubbleWorldProperties extends UnmodifiableLevelProperties {
         rules.get(GameRules.DO_DAYLIGHT_CYCLE).set(false, null);
         rules.get(GameRules.DO_MOB_SPAWNING).set(false, null);
         rules.get(GameRules.ANNOUNCE_ADVANCEMENTS).set(false, null);
+        rules.get(GameRules.DO_FIRE_TICK).set(false, null);
         return rules;
     }
 
