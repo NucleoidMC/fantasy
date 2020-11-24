@@ -141,7 +141,9 @@ public final class Fantasy {
     }
 
     void enqueueWorldDeletion(ServerWorld world) {
-        this.server.submit(() -> this.deletionQueue.add(world));
+        CompletableFuture.runAsync(() -> {
+            this.deletionQueue.add(world);
+        }, this.server);
     }
 
     private boolean tickDeleteWorld(ServerWorld world) {
