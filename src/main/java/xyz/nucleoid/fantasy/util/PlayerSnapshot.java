@@ -5,7 +5,6 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.registry.RegistryKey;
-import net.minecraft.world.GameMode;
 import net.minecraft.world.World;
 import xyz.nucleoid.fantasy.Fantasy;
 
@@ -38,14 +37,13 @@ public final class PlayerSnapshot {
     public void restore(ServerPlayerEntity player) {
         ServerWorld world = player.getServerWorld().getServer().getWorld(this.dimension);
 
-        player.setGameMode(GameMode.ADVENTURE);
-        player.teleport(world, this.position.x, this.position.y, this.position.z, this.yaw, this.pitch);
+        Fantasy.resetPlayer(player);
 
         player.fromTag(this.playerData);
 
+        player.teleport(world, this.position.x, this.position.y, this.position.z, this.yaw, this.pitch);
+
         // force synchronize the updated gamemode
         player.setGameMode(player.interactionManager.getGameMode());
-
-        Fantasy.resetPlayer(player);
     }
 }
