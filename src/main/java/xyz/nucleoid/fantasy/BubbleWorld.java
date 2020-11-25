@@ -110,7 +110,7 @@ final class BubbleWorld extends ServerWorld {
     public void removePlayer(ServerPlayerEntity player) {
         super.removePlayer(player);
 
-        this.removeBubblePlayer(player);
+        this.removeBubblePlayer(player, false);
     }
 
     List<ServerPlayerEntity> kickPlayers() {
@@ -122,7 +122,7 @@ final class BubbleWorld extends ServerWorld {
     }
 
     void kickPlayer(ServerPlayerEntity player) {
-        if (!this.removeBubblePlayer(player) || player.world == this) {
+        if (!this.removeBubblePlayer(player, true) || player.world == this) {
             ServerWorld overworld = this.getServer().getOverworld();
             BlockPos spawnPos = overworld.getSpawnPos();
             float spawnAngle = overworld.getSpawnAngle();
@@ -144,18 +144,22 @@ final class BubbleWorld extends ServerWorld {
         return false;
     }
 
-    boolean removeBubblePlayer(ServerPlayerEntity player) {
+    boolean removeBubblePlayer(ServerPlayerEntity player, boolean immediate) {
         this.assertServerThread();
 
         PlayerSnapshot snapshot = this.players.remove(player.getUuid());
         if (snapshot != null) {
             this.notifyRemovePlayer(player);
 
-            // this might be called from a player being teleported out of the dimension
-            // in that case, we don't want to recursively teleport: wait for next tick to restore
-            this.fantasy.enqueueNextTick(() -> {
+            if (immediate) {
                 snapshot.restore(player);
-            });
+            } else {
+                // this might be called from a player being teleported out of the dimension
+                // in that case, we don't want to recursively teleport: wait for next tick to restore
+                this.fantasy.enqueueNextTick(() -> {
+                    snapshot.restore(player);
+                });
+            }
 
             return true;
         }

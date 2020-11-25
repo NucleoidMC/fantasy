@@ -8,7 +8,7 @@ import java.util.UUID;
 public final class BubbleAccess {
     public static boolean removePlayer(ServerWorld world, ServerPlayerEntity player) {
         if (world instanceof BubbleWorld) {
-            return ((BubbleWorld) world).removeBubblePlayer(player);
+            return ((BubbleWorld) world).removeBubblePlayer(player, true);
         }
         return false;
     }
