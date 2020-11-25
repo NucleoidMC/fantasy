@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableList;
 import com.mojang.serialization.Lifecycle;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerWorldEvents;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
@@ -128,6 +129,8 @@ public final class Fantasy {
 
         this.serverAccess.getWorlds().put(worldKey, world);
 
+        ServerWorldEvents.LOAD.invoker().onWorldLoad(this.server, world);
+
         return world;
     }
 
@@ -136,6 +139,8 @@ public final class Fantasy {
 
         BubbleWorld world = new BubbleWorld(this, this.server, worldKey, config);
         this.serverAccess.getWorlds().put(worldKey, world);
+
+        ServerWorldEvents.LOAD.invoker().onWorldLoad(this.server, world);
 
         return world;
     }
@@ -179,6 +184,8 @@ public final class Fantasy {
         RegistryKey<World> dimensionKey = world.getRegistryKey();
 
         if (this.serverAccess.getWorlds().remove(dimensionKey, world)) {
+            ServerWorldEvents.UNLOAD.invoker().onWorldUnload(this.server, world);
+
             SimpleRegistry<DimensionOptions> dimensionsRegistry = this.getDimensionsRegistry();
             RemoveFromRegistry.remove(dimensionsRegistry, dimensionKey.getValue());
 
