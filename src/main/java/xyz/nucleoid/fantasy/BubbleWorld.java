@@ -103,18 +103,12 @@ final class BubbleWorld extends ServerWorld {
             return;
         }
 
-        for (WorldPlayerListener listener : this.playerListeners) {
-            listener.onAddPlayer(player);
-        }
+        this.notifyAddPlayer(player);
     }
 
     @Override
     public void removePlayer(ServerPlayerEntity player) {
         super.removePlayer(player);
-
-        for (WorldPlayerListener listener : this.playerListeners) {
-            listener.onRemovePlayer(player);
-        }
 
         this.removeBubblePlayer(player);
     }
@@ -134,9 +128,7 @@ final class BubbleWorld extends ServerWorld {
             float spawnAngle = overworld.getSpawnAngle();
             player.teleport(overworld, spawnPos.getX() + 0.5, spawnPos.getY(), spawnPos.getZ() + 0.5, spawnAngle, 0.0F);
         } else {
-            for (WorldPlayerListener listener : this.playerListeners) {
-                listener.onRemovePlayer(player);
-            }
+            this.notifyRemovePlayer(player);
         }
     }
 
@@ -157,6 +149,8 @@ final class BubbleWorld extends ServerWorld {
 
         PlayerSnapshot snapshot = this.players.remove(player.getUuid());
         if (snapshot != null) {
+            this.notifyRemovePlayer(player);
+
             // this might be called from a player being teleported out of the dimension
             // in that case, we don't want to recursively teleport: wait for next tick to restore
             this.fantasy.enqueueNextTick(() -> {
@@ -175,14 +169,23 @@ final class BubbleWorld extends ServerWorld {
 
         player.setHealth(20.0F);
         player.getHungerManager().setFoodLevel(20);
-        player.fallDistance = 0.0F;
-        player.clearStatusEffects();
 
-        player.setFireTicks(0);
-        player.stopFallFlying();
+        Fantasy.resetPlayer(player);
 
         player.setGameMode(this.config.getDefaultGameMode());
         this.config.getSpawner().spawnPlayer(this, player);
+    }
+
+    private void notifyAddPlayer(ServerPlayerEntity player) {
+        for (WorldPlayerListener listener : this.playerListeners) {
+            listener.onAddPlayer(player);
+        }
+    }
+
+    private void notifyRemovePlayer(ServerPlayerEntity player) {
+        for (WorldPlayerListener listener : this.playerListeners) {
+            listener.onRemovePlayer(player);
+        }
     }
 
     boolean containsBubblePlayer(UUID id) {

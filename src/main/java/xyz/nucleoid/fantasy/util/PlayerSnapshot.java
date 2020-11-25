@@ -1,21 +1,13 @@
 package xyz.nucleoid.fantasy.util;
 
-import net.minecraft.entity.attribute.AttributeContainer;
-import net.minecraft.entity.attribute.EntityAttribute;
-import net.minecraft.entity.attribute.EntityAttributeInstance;
-import net.minecraft.entity.attribute.EntityAttributeModifier;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.Vec3d;
-import net.minecraft.util.registry.Registry;
 import net.minecraft.util.registry.RegistryKey;
 import net.minecraft.world.GameMode;
 import net.minecraft.world.World;
-
-import java.util.Set;
-import java.util.UUID;
-import java.util.stream.Collectors;
+import xyz.nucleoid.fantasy.Fantasy;
 
 public final class PlayerSnapshot {
     private final RegistryKey<World> dimension;
@@ -54,22 +46,6 @@ public final class PlayerSnapshot {
         // force synchronize the updated gamemode
         player.setGameMode(player.interactionManager.getGameMode());
 
-        player.setFireTicks(0);
-        player.stopFallFlying();
-        player.fallDistance = 0.0F;
-
-        AttributeContainer attributes = player.getAttributes();
-        for (EntityAttribute attribute : Registry.ATTRIBUTE) {
-            if (!attributes.hasAttribute(attribute)) {
-                continue;
-            }
-
-            EntityAttributeInstance attributeInstance = attributes.getCustomInstance(attribute);
-            Set<UUID> modifiers = attributeInstance.getModifiers().stream()
-                    .map(EntityAttributeModifier::getId)
-                    .collect(Collectors.toSet());
-
-            modifiers.forEach(attributeInstance::removeModifier);
-        }
+        Fantasy.resetPlayer(player);
     }
 }

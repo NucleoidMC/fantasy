@@ -5,6 +5,10 @@ import com.mojang.serialization.Lifecycle;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerWorldEvents;
+import net.minecraft.entity.attribute.AttributeContainer;
+import net.minecraft.entity.attribute.EntityAttribute;
+import net.minecraft.entity.attribute.EntityAttributeInstance;
+import net.minecraft.entity.attribute.EntityAttributeModifier;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
@@ -34,6 +38,7 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 public final class Fantasy {
     public static final Logger LOGGER = LogManager.getLogger(Fantasy.class);
@@ -213,5 +218,28 @@ public final class Fantasy {
     private Identifier generateBubbleKey() {
         String random = RandomStringUtils.random(16, "abcdefghijklmnopqrstuvwxyz0123456789");
         return new Identifier(Fantasy.ID, "bubble_" + random);
+    }
+
+    public static void resetPlayer(ServerPlayerEntity player) {
+        player.setFireTicks(0);
+        player.stopFallFlying();
+        player.fallDistance = 0.0F;
+
+        player.setStuckArrowCount(0);
+        player.setGlowing(false);
+
+        AttributeContainer attributes = player.getAttributes();
+        for (EntityAttribute attribute : Registry.ATTRIBUTE) {
+            if (!attributes.hasAttribute(attribute)) {
+                continue;
+            }
+
+            EntityAttributeInstance attributeInstance = attributes.getCustomInstance(attribute);
+            Set<UUID> modifiers = attributeInstance.getModifiers().stream()
+                    .map(EntityAttributeModifier::getId)
+                    .collect(Collectors.toSet());
+
+            modifiers.forEach(attributeInstance::removeModifier);
+        }
     }
 }
