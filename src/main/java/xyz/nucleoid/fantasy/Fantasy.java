@@ -225,8 +225,13 @@ public final class Fantasy {
         player.stopFallFlying();
         player.fallDistance = 0.0F;
 
+        player.setExperienceLevel(0);
+        player.setExperiencePoints(0);
+
         player.setStuckArrowCount(0);
         player.setGlowing(false);
+
+        player.clearStatusEffects();
 
         AttributeContainer attributes = player.getAttributes();
         for (EntityAttribute attribute : Registry.ATTRIBUTE) {
