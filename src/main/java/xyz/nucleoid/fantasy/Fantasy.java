@@ -3,6 +3,7 @@ package xyz.nucleoid.fantasy;
 import com.google.common.collect.ImmutableList;
 import com.mojang.serialization.Lifecycle;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerWorldEvents;
 import net.minecraft.entity.attribute.AttributeContainer;
@@ -56,6 +57,11 @@ public final class Fantasy {
         ServerTickEvents.START_SERVER_TICK.register(server -> {
             Fantasy fantasy = get(server);
             fantasy.tick();
+        });
+
+        ServerLifecycleEvents.SERVER_STOPPING.register(server -> {
+            Fantasy fantasy = get(server);
+            fantasy.onServerStopping();
         });
     }
 
@@ -208,6 +214,24 @@ public final class Fantasy {
                 }
             }
         }
+    }
+
+    private void onServerStopping() {
+        List<BubbleWorld> bubbles = this.collectBubbleWorlds();
+        for (BubbleWorld bubble : bubbles) {
+            this.kickPlayers(bubble);
+            this.deleteWorld(bubble);
+        }
+    }
+
+    private List<BubbleWorld> collectBubbleWorlds() {
+        List<BubbleWorld> bubbles = new ArrayList<>();
+        for (ServerWorld world : this.server.getWorlds()) {
+            if (world instanceof BubbleWorld) {
+                bubbles.add(((BubbleWorld) world));
+            }
+        }
+        return bubbles;
     }
 
     private SimpleRegistry<DimensionOptions> getDimensionsRegistry() {
