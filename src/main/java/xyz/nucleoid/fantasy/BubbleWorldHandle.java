@@ -19,12 +19,12 @@ public final class BubbleWorldHandle implements FantasyWorldHandle {
         return this.world;
     }
 
-    public boolean addPlayer(ServerPlayerEntity player) {
+    public ServerPlayerEntity addPlayer(ServerPlayerEntity player) {
         return this.world.addBubblePlayer(player);
     }
 
     public boolean removePlayer(ServerPlayerEntity player) {
-        return this.world.removeBubblePlayer(player, false);
+        return this.world.removeBubblePlayer(player);
     }
 
     public void addPlayerListener(WorldPlayerListener listener) {

@@ -20,6 +20,9 @@ public final class BubbleWorldConfig {
     private Difficulty difficulty = Difficulty.NORMAL;
     private final GameRuleStore gameRules = new GameRuleStore();
 
+    private String resourcePackUrl;
+    private String resourcePackHash;
+
     private int sunnyTime = Integer.MAX_VALUE;
     private boolean raining;
     private int rainTime;
@@ -104,6 +107,12 @@ public final class BubbleWorldConfig {
         return this;
     }
 
+    public BubbleWorldConfig setResourcePack(String resourcePackUrl, String resourcePackHash) {
+        this.resourcePackUrl = resourcePackUrl;
+        this.resourcePackHash = resourcePackHash;
+        return this;
+    }
+
     public long getSeed() {
         return this.seed;
     }
@@ -155,5 +164,15 @@ public final class BubbleWorldConfig {
 
     public boolean isThundering() {
         return this.thundering;
+    }
+
+    @Nullable
+    public String getResourcePackUrl() {
+        return this.resourcePackUrl;
+    }
+
+    @Nullable
+    public String getResourcePackHash() {
+        return this.resourcePackHash;
     }
 }

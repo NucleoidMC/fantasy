@@ -31,7 +31,7 @@ public interface BubbleWorldSpawner {
 
         @Override
         public void spawnPlayer(ServerWorld world, ServerPlayerEntity player) {
-            player.teleport(world, this.pos.x, this.pos.y, this.pos.z, 0.0F, 0.0F);
+            player.refreshPositionAndAngles(this.pos.x, this.pos.y, this.pos.z, 0.0F, 0.0F);
         }
     }
 
@@ -47,7 +47,7 @@ public interface BubbleWorldSpawner {
             Chunk chunk = world.getChunk(this.pos);
             int surfaceY = chunk.sampleHeightmap(Heightmap.Type.MOTION_BLOCKING, this.pos.getX(), this.pos.getZ());
 
-            player.teleport(world, this.pos.getX() + 0.5, surfaceY + 1, this.pos.getZ(), 0.0F, 0.0F);
+            player.refreshPositionAndAngles(this.pos.getX() + 0.5, surfaceY + 1, this.pos.getZ() + 0.5, 0.0F, 0.0F);
         }
     }
 }

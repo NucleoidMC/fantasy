@@ -5,6 +5,7 @@
   "compatibilityLevel": "JAVA_8",
   "mixins": [
     "MinecraftServerAccess",
+    "bubble.IntegratedPlayerManagerMixin",
     "bubble.PlayerManagerMixin",
     "bubble.ServerPlayerEntityMixin",
     "registry.SimpleRegistryMixin"
