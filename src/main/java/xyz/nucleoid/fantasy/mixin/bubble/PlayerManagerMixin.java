@@ -90,7 +90,7 @@ public abstract class PlayerManagerMixin implements PlayerManagerAccess {
                     target = "Lnet/minecraft/server/network/ServerPlayerEntity;copyFrom(Lnet/minecraft/server/network/ServerPlayerEntity;Z)V",
                     shift = At.Shift.AFTER
             ),
-            locals = LocalCapture.PRINT
+            locals = LocalCapture.CAPTURE_FAILHARD
     )
     private void respawnPlayer(
             ServerPlayerEntity oldPlayer, boolean alive, CallbackInfoReturnable<ServerPlayerEntity> ci,
