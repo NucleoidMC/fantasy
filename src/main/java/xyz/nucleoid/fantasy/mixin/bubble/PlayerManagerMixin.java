@@ -7,7 +7,6 @@ import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.network.packet.s2c.play.*;
-import net.minecraft.scoreboard.ServerScoreboard;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.PlayerManager;
 import net.minecraft.server.network.ServerPlayNetworkHandler;
@@ -70,9 +69,6 @@ public abstract class PlayerManagerMixin implements PlayerManagerAccess {
 
     @Shadow
     public abstract void sendCommandTree(ServerPlayerEntity player);
-
-    @Shadow
-    protected abstract void sendScoreboard(ServerScoreboard scoreboard, ServerPlayerEntity player);
 
     @Shadow
     public abstract void sendWorldInfo(ServerPlayerEntity player, ServerWorld world);
@@ -138,7 +134,6 @@ public abstract class PlayerManagerMixin implements PlayerManagerAccess {
 
         this.sendCommandTree(player);
         player.getRecipeBook().sendInitRecipesPacket(player);
-        this.sendScoreboard(world.getScoreboard(), player);
 
         world.onPlayerTeleport(player);
         networkHandler.requestTeleport(player.getX(), player.getY(), player.getZ(), player.yaw, player.pitch);
