@@ -2,6 +2,7 @@ package xyz.nucleoid.fantasy.mixin.bubble;
 
 import com.mojang.authlib.GameProfile;
 import com.mojang.serialization.Dynamic;
+import net.minecraft.advancement.PlayerAdvancementTracker;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtOps;
@@ -13,6 +14,8 @@ import net.minecraft.server.network.ServerPlayNetworkHandler;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.network.ServerPlayerInteractionManager;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.stat.ServerStatHandler;
+import net.minecraft.util.Util;
 import net.minecraft.util.registry.RegistryKey;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldProperties;
@@ -28,12 +31,13 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import xyz.nucleoid.fantasy.player.BubbledServerPlayerEntity;
+import xyz.nucleoid.fantasy.BubbleAccess;
 import xyz.nucleoid.fantasy.player.PlayerManagerAccess;
+import xyz.nucleoid.fantasy.util.PlayerResetter;
 
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.function.Function;
 
 @Mixin(PlayerManager.class)
 public abstract class PlayerManagerMixin implements PlayerManagerAccess {
@@ -42,13 +46,16 @@ public abstract class PlayerManagerMixin implements PlayerManagerAccess {
     private static Logger LOGGER;
     @Shadow
     @Final
-    private List<ServerPlayerEntity> players;
-    @Shadow
-    @Final
     private MinecraftServer server;
     @Shadow
     @Final
-    private Map<UUID, ServerPlayerEntity> playerMap;
+    private WorldSaveHandler saveHandler;
+    @Shadow
+    @Final
+    private Map<UUID, ServerStatHandler> statisticsMap;
+    @Shadow
+    @Final
+    private Map<UUID, PlayerAdvancementTracker> advancementTrackers;
 
     @Shadow
     protected abstract void savePlayerData(ServerPlayerEntity player);
@@ -68,78 +75,59 @@ public abstract class PlayerManagerMixin implements PlayerManagerAccess {
     @Shadow
     public abstract CompoundTag getUserData();
 
-    @Shadow
-    @Final
-    private WorldSaveHandler saveHandler;
+    @Unique
+    private PlayerResetter playerResetter;
 
     @Override
-    public void teleportAndRecreate(ServerPlayerEntity oldPlayer, ServerPlayerEntity newPlayer, ServerWorld world) {
-        // make sure we're being called with the most up-to-date player entity
-        oldPlayer = this.playerMap.getOrDefault(oldPlayer.getUuid(), oldPlayer);
+    public void teleportAndRecreate(ServerPlayerEntity player, Function<ServerPlayerEntity, ServerWorld> recreate) {
+        player.detach();
+        this.savePlayerData(player);
 
-        oldPlayer.detach();
-        this.savePlayerData(oldPlayer);
+        player.getAdvancementTracker().clearCriteria();
+        this.server.getBossBarManager().onPlayerDisconnect(player);
 
-        this.players.remove(oldPlayer);
+        player.getServerWorld().removePlayer(player);
+        player.removed = false;
 
-        oldPlayer.getServerWorld().removePlayer(oldPlayer);
+        PlayerResetter resetter = this.getPlayerResetter();
+        resetter.apply(player);
 
-        oldPlayer.getAdvancementTracker().clearCriteria();
-        this.server.getBossBarManager().onPlayerDisconnect(oldPlayer);
+        ServerWorld world = recreate.apply(player);
+        player.setWorld(world);
+        player.interactionManager.setWorld(world);
 
         WorldProperties worldProperties = world.getLevelProperties();
 
-        ServerPlayNetworkHandler networkHandler = oldPlayer.networkHandler;
-        networkHandler.player = newPlayer;
-
-        newPlayer.networkHandler = networkHandler;
-
+        ServerPlayNetworkHandler networkHandler = player.networkHandler;
         networkHandler.sendPacket(new PlayerRespawnS2CPacket(
                 world.getDimension(), world.getRegistryKey(),
                 BiomeAccess.hashSeed(world.getSeed()),
-                newPlayer.interactionManager.getGameMode(), newPlayer.interactionManager.getPreviousGameMode(),
+                player.interactionManager.getGameMode(), player.interactionManager.getPreviousGameMode(),
                 world.isDebugWorld(), world.isFlat(), false
         ));
 
-        this.players.add(newPlayer);
-        this.playerMap.put(oldPlayer.getUuid(), newPlayer);
-
         networkHandler.sendPacket(new DifficultyS2CPacket(worldProperties.getDifficulty(), worldProperties.isDifficultyLocked()));
-        networkHandler.sendPacket(new PlayerAbilitiesS2CPacket(newPlayer.abilities));
-        networkHandler.sendPacket(new HeldItemChangeS2CPacket(newPlayer.inventory.selectedSlot));
+        networkHandler.sendPacket(new PlayerAbilitiesS2CPacket(player.abilities));
+        networkHandler.sendPacket(new HeldItemChangeS2CPacket(player.inventory.selectedSlot));
 
-        this.sendCommandTree(newPlayer);
-        newPlayer.getStatHandler().updateStatSet();
-        newPlayer.getRecipeBook().sendInitRecipesPacket(newPlayer);
-        this.sendScoreboard(world.getScoreboard(), newPlayer);
+        this.sendCommandTree(player);
+        player.getRecipeBook().sendInitRecipesPacket(player);
+        this.sendScoreboard(world.getScoreboard(), player);
 
-        networkHandler.requestTeleport(newPlayer.getX(), newPlayer.getY(), newPlayer.getZ(), newPlayer.yaw, newPlayer.pitch);
+        world.onPlayerTeleport(player);
+        networkHandler.requestTeleport(player.getX(), player.getY(), player.getZ(), player.yaw, player.pitch);
 
-        world.onPlayerConnected(newPlayer);
-        this.server.getBossBarManager().onPlayerConnect(newPlayer);
+        this.server.getBossBarManager().onPlayerConnect(player);
 
-        this.sendWorldInfo(newPlayer, world);
+        this.sendWorldInfo(player, world);
 
-        for (StatusEffectInstance effect : newPlayer.getStatusEffects()) {
-            networkHandler.sendPacket(new EntityStatusEffectS2CPacket(newPlayer.getEntityId(), effect));
+        for (StatusEffectInstance effect : player.getStatusEffects()) {
+            networkHandler.sendPacket(new EntityStatusEffectS2CPacket(player.getEntityId(), effect));
         }
-
-        newPlayer.onSpawn();
-
-        // if anything still is referencing the old player, the best we can do is have it be up-to-date
-        oldPlayer.world = newPlayer.world;
-        oldPlayer.copyFrom(newPlayer);
-
-        // close the "joining world" screen
-        networkHandler.sendPacket(new CloseScreenS2CPacket());
     }
 
     @Override
-    public ServerPlayerEntity createLoadedPlayer(GameProfile profile) {
-        ServerWorld overworld = this.server.getOverworld();
-        ServerPlayerInteractionManager interactionManager = new ServerPlayerInteractionManager(overworld);
-        ServerPlayerEntity player = new ServerPlayerEntity(this.server, overworld, profile, interactionManager);
-
+    public void loadIntoPlayer(ServerPlayerEntity player) {
         CompoundTag userData = this.getUserData();
         if (userData == null) {
             userData = this.server.getSaveProperties().getPlayerData();
@@ -164,8 +152,6 @@ public abstract class PlayerManagerMixin implements PlayerManagerAccess {
         player.interactionManager.setWorld(world);
 
         this.setGameMode(player, null, world);
-
-        return player;
     }
 
     @Unique
@@ -177,8 +163,30 @@ public abstract class PlayerManagerMixin implements PlayerManagerAccess {
 
     @Inject(method = "savePlayerData", at = @At("HEAD"), cancellable = true)
     private void savePlayerData(ServerPlayerEntity player, CallbackInfo ci) {
-        if (player instanceof BubbledServerPlayerEntity) {
+        if (BubbleAccess.isPlayedBubbled(player)) {
             ci.cancel();
         }
+    }
+
+    @Override
+    public PlayerResetter getPlayerResetter() {
+        if (this.playerResetter == null) {
+            ServerWorld overworld = this.server.getOverworld();
+            GameProfile profile = new GameProfile(Util.NIL_UUID, "null");
+            ServerPlayerInteractionManager interactionManager = new ServerPlayerInteractionManager(overworld);
+
+            ServerPlayerEntity player = new ServerPlayerEntity(this.server, overworld, profile, interactionManager);
+            this.statisticsMap.remove(Util.NIL_UUID);
+            this.advancementTrackers.remove(Util.NIL_UUID);
+
+            CompoundTag tag = new CompoundTag();
+            player.toTag(tag);
+            tag.remove("UUID");
+            tag.remove("Pos");
+
+            this.playerResetter = new PlayerResetter(tag);
+        }
+
+        return this.playerResetter;
     }
 }

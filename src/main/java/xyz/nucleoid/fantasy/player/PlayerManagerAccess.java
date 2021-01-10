@@ -1,11 +1,15 @@
 package xyz.nucleoid.fantasy.player;
 
-import com.mojang.authlib.GameProfile;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
+import xyz.nucleoid.fantasy.util.PlayerResetter;
+
+import java.util.function.Function;
 
 public interface PlayerManagerAccess {
-    void teleportAndRecreate(ServerPlayerEntity oldPlayer, ServerPlayerEntity newPlayer, ServerWorld world);
+    void teleportAndRecreate(ServerPlayerEntity player, Function<ServerPlayerEntity, ServerWorld> recreate);
 
-    ServerPlayerEntity createLoadedPlayer(GameProfile profile);
+    void loadIntoPlayer(ServerPlayerEntity player);
+
+    PlayerResetter getPlayerResetter();
 }

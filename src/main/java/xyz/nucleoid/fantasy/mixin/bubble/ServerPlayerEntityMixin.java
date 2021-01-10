@@ -14,6 +14,8 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import xyz.nucleoid.fantasy.BubbleAccess;
+import xyz.nucleoid.fantasy.BubbleWorldConfig;
+import xyz.nucleoid.fantasy.player.BubblePlayerTeleporter;
 
 @Mixin(ServerPlayerEntity.class)
 public abstract class ServerPlayerEntityMixin extends PlayerEntity {
@@ -29,6 +31,13 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity {
         if (this.world != targetWorld) {
             if (BubbleAccess.isBubbleWorld(targetWorld)) {
                 ci.cancel();
+                return;
+            }
+
+            BubbleWorldConfig bubbleConfig = BubbleAccess.getBubbleConfig(this.getServerWorld());
+            if (bubbleConfig != null) {
+                BubblePlayerTeleporter teleporter = new BubblePlayerTeleporter((ServerPlayerEntity) (Object) this);
+                teleporter.teleportFromBubbleTo(bubbleConfig, targetWorld);
             }
         }
     }
@@ -38,6 +47,13 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity {
         if (this.world != targetWorld) {
             if (BubbleAccess.isBubbleWorld(targetWorld)) {
                 ci.setReturnValue(this);
+                return;
+            }
+
+            BubbleWorldConfig bubbleConfig = BubbleAccess.getBubbleConfig(this.getServerWorld());
+            if (bubbleConfig != null) {
+                BubblePlayerTeleporter teleporter = new BubblePlayerTeleporter((ServerPlayerEntity) (Object) this);
+                teleporter.teleportFromBubbleTo(bubbleConfig, targetWorld);
             }
         }
     }

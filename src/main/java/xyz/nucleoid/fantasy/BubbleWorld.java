@@ -14,7 +14,7 @@ import net.minecraft.world.World;
 import net.minecraft.world.biome.source.BiomeAccess;
 import org.jetbrains.annotations.Nullable;
 import xyz.nucleoid.fantasy.mixin.MinecraftServerAccess;
-import xyz.nucleoid.fantasy.player.PlayerTeleporter;
+import xyz.nucleoid.fantasy.player.BubblePlayerTeleporter;
 import xyz.nucleoid.fantasy.util.VoidWorldProgressListener;
 
 import java.io.IOException;
@@ -26,7 +26,7 @@ import java.util.UUID;
 final class BubbleWorld extends ServerWorld {
     private final Fantasy fantasy;
 
-    private final BubbleWorldConfig config;
+    final BubbleWorldConfig config;
 
     private final Set<UUID> players = new ObjectOpenHashSet<>();
 
@@ -129,20 +129,20 @@ final class BubbleWorld extends ServerWorld {
     }
 
     void kickPlayer(ServerPlayerEntity player) {
-        PlayerTeleporter teleporter = new PlayerTeleporter(player);
+        BubblePlayerTeleporter teleporter = new BubblePlayerTeleporter(player);
         teleporter.teleportFromBubble(this.config);
     }
 
-    @Nullable
-    ServerPlayerEntity addBubblePlayer(ServerPlayerEntity player) {
+    boolean addBubblePlayer(ServerPlayerEntity player) {
         this.assertServerThread();
 
         if (this.players.add(player.getUuid())) {
-            PlayerTeleporter teleporter = new PlayerTeleporter(player);
-            return teleporter.teleportIntoBubble(this, this.config);
+            BubblePlayerTeleporter teleporter = new BubblePlayerTeleporter(player);
+            teleporter.teleportIntoBubble(this, this.config);
+            return true;
         }
 
-        return null;
+        return false;
     }
 
     boolean removeBubblePlayer(ServerPlayerEntity player) {
