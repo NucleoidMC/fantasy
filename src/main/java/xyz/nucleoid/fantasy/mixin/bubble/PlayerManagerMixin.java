@@ -97,6 +97,9 @@ public abstract class PlayerManagerMixin implements PlayerManagerAccess {
             this.loadIntoPlayer(respawnedPlayer);
             respawnedPlayer.setWorld(respawnWorld);
             interactionManager.setWorld(respawnWorld);
+
+            // this is later used to apply back to the respawned player, and we want to maintain that
+            oldPlayer.interactionManager.setGameMode(interactionManager.getGameMode(), interactionManager.getPreviousGameMode());
         }
     }
 
