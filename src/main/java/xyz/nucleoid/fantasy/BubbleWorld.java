@@ -5,13 +5,17 @@ import com.google.common.collect.ImmutableList;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.LiteralText;
 import net.minecraft.util.ProgressListener;
+import net.minecraft.util.Util;
 import net.minecraft.util.registry.RegistryKey;
 import net.minecraft.world.World;
 import net.minecraft.world.biome.source.BiomeAccess;
 import org.jetbrains.annotations.Nullable;
+import xyz.nucleoid.fantasy.mixin.MinecraftServerAccess;
 import xyz.nucleoid.fantasy.player.BubblePlayerTeleporter;
+import xyz.nucleoid.fantasy.util.VoidWorldProgressListener;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -19,7 +23,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
-final class BubbleWorld extends FantasyWorld {
+class BubbleWorld extends ServerWorld {
     private final Fantasy fantasy;
 
     final BubbleWorldConfig config;
@@ -35,10 +39,11 @@ final class BubbleWorld extends FantasyWorld {
             BubbleWorldConfig config
     ) {
         super(
-                server,
+                server, Util.getMainWorkerExecutor(), ((MinecraftServerAccess) server).getSession(),
                 new BubbleWorldProperties(server.getSaveProperties(), config),
                 registryKey,
                 Preconditions.checkNotNull(server.getRegistryManager().getDimensionTypes().get(config.getDimensionType()), "invalid dimension type!"),
+                VoidWorldProgressListener.INSTANCE,
                 config.getGenerator(),
                 false,
                 BiomeAccess.hashSeed(config.getSeed()),

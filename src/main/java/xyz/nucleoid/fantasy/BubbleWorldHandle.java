@@ -16,7 +16,7 @@ public final class BubbleWorldHandle implements FantasyWorldHandle {
 
     @Override
     public void setTickWhenEmpty(boolean tickWhenEmpty) {
-        this.world.setTickWhenEmpty(tickWhenEmpty);
+        ((FantasyWorldAccess) this.world).setTickWhenEmpty(tickWhenEmpty);
     }
 
     @Override
