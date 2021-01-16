@@ -37,6 +37,6 @@ public abstract class ServerWorldMixin implements FantasyWorldAccess {
     }
 
     private boolean isWorldEmpty() {
-        return this.getPlayers().isEmpty() && this.getChunkManager().getLoadedChunkCount() > 0;
+        return this.getPlayers().isEmpty() && this.getChunkManager().getLoadedChunkCount() <= 0;
     }
 }
