@@ -36,7 +36,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 import xyz.nucleoid.fantasy.BubbleAccess;
 import xyz.nucleoid.fantasy.player.PlayerManagerAccess;
-import xyz.nucleoid.fantasy.util.PlayerResetter;
+import xyz.nucleoid.fantasy.player.PlayerResetter;
 
 import java.util.Map;
 import java.util.Optional;

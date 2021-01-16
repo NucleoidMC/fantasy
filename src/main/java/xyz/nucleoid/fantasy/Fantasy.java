@@ -10,7 +10,6 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.Util;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.registry.Registry;
 import net.minecraft.util.registry.RegistryKey;
@@ -27,7 +26,6 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import xyz.nucleoid.fantasy.mixin.MinecraftServerAccess;
-import xyz.nucleoid.fantasy.util.VoidWorldProgressListener;
 
 import java.io.File;
 import java.io.IOException;
@@ -90,9 +88,9 @@ public final class Fantasy {
         return CompletableFuture.supplyAsync(() -> {
             RegistryKey<World> worldKey = RegistryKey.of(Registry.DIMENSION, key);
             ServerWorld world = this.server.getWorld(worldKey);
-            if (world != null) {
+            if (world instanceof FantasyWorld) {
                 this.deletionQueue.remove(world);
-                return world;
+                return (FantasyWorld) world;
             }
 
             // TODO: custom seeds
@@ -101,7 +99,7 @@ public final class Fantasy {
                 .thenApply(world -> new PersistentWorldHandle(this, world));
     }
 
-    ServerWorld openPersistentWorld(Identifier key, DimensionOptions options, long seed) {
+    FantasyWorld openPersistentWorld(Identifier key, DimensionOptions options, long seed) {
         RegistryKey<World> worldKey = RegistryKey.of(Registry.DIMENSION, key);
 
         // TODO: custom properties that can be transferred with the map? (we'll have to handle saving them manually!)
@@ -111,13 +109,11 @@ public final class Fantasy {
         SimpleRegistry<DimensionOptions> dimensionsRegistry = this.getDimensionsRegistry();
         dimensionsRegistry.add(RegistryKey.of(Registry.DIMENSION_OPTIONS, key), options, Lifecycle.stable());
 
-        ServerWorld world = new ServerWorld(
-                this.server, Util.getMainWorkerExecutor(),
-                this.serverAccess.getSession(),
+        FantasyWorld world = new FantasyWorld(
+                this.server,
                 properties,
                 worldKey,
                 options.getDimensionType(),
-                VoidWorldProgressListener.INSTANCE,
                 options.getChunkGenerator(),
                 false,
                 BiomeAccess.hashSeed(seed),

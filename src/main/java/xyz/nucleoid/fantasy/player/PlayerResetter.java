@@ -1,4 +1,4 @@
-package xyz.nucleoid.fantasy.util;
+package xyz.nucleoid.fantasy.player;
 
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.network.ServerPlayerEntity;

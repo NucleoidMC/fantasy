@@ -4,11 +4,16 @@ import net.minecraft.server.world.ServerWorld;
 
 public final class PersistentWorldHandle implements FantasyWorldHandle {
     private final Fantasy fantasy;
-    private final ServerWorld world;
+    private final FantasyWorld world;
 
-    PersistentWorldHandle(Fantasy fantasy, ServerWorld world) {
+    PersistentWorldHandle(Fantasy fantasy, FantasyWorld world) {
         this.fantasy = fantasy;
         this.world = world;
+    }
+
+    @Override
+    public void setTickWhenEmpty(boolean tickWhenEmpty) {
+        this.world.setTickWhenEmpty(tickWhenEmpty);
     }
 
     @Override
