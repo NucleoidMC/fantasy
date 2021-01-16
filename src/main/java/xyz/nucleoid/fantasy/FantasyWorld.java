@@ -40,8 +40,12 @@ class FantasyWorld extends ServerWorld {
 
     @Override
     public void tick(BooleanSupplier shouldKeepTicking) {
-        if (this.tickWhenEmpty || !this.getPlayers().isEmpty()) {
+        if (this.tickWhenEmpty || !this.isWorldEmpty()) {
             super.tick(shouldKeepTicking);
         }
+    }
+
+    private boolean isWorldEmpty() {
+        return this.getPlayers().isEmpty() && this.getChunkManager().getLoadedChunkCount() > 0;
     }
 }
