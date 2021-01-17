@@ -147,7 +147,7 @@ class BubbleWorld extends ServerWorld {
         this.assertServerThread();
 
         try {
-            if (this.players.remove(player.getUuid())) {
+            if (this.players.contains(player.getUuid())) {
                 this.kickPlayer(player);
                 return true;
             }
