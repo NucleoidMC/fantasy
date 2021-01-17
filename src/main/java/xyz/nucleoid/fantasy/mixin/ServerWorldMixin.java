@@ -16,6 +16,8 @@ import java.util.function.BooleanSupplier;
 
 @Mixin(ServerWorld.class)
 public abstract class ServerWorldMixin implements FantasyWorldAccess {
+    private static final int TICK_TIMEOUT = 20 * 15;
+
     @Shadow
     public abstract List<ServerPlayerEntity> getPlayers();
     @Shadow
@@ -23,6 +25,8 @@ public abstract class ServerWorldMixin implements FantasyWorldAccess {
 
     @Unique
     private boolean tickWhenEmpty = true;
+    @Unique
+    private int tickTimeout;
 
     @Override
     public void setTickWhenEmpty(boolean tickWhenEmpty) {
@@ -31,7 +35,10 @@ public abstract class ServerWorldMixin implements FantasyWorldAccess {
 
     @Inject(method = "tick", at = @At("HEAD"), cancellable = true)
     private void tick(BooleanSupplier shouldKeepTicking, CallbackInfo ci) {
-        if (!this.tickWhenEmpty && this.isWorldEmpty()) {
+        boolean shouldTick = this.tickWhenEmpty || !this.isWorldEmpty();
+        if (shouldTick) {
+            this.tickTimeout = TICK_TIMEOUT;
+        } else if (this.tickTimeout-- <= 0) {
             ci.cancel();
         }
     }

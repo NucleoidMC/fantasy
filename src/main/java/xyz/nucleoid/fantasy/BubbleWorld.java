@@ -112,9 +112,9 @@ class BubbleWorld extends ServerWorld {
     }
 
     private void onRemovePlayer(ServerPlayerEntity player) {
-        this.players.remove(player.getUuid());
-
-        this.notifyRemovePlayer(player);
+        if (this.players.remove(player.getUuid())) {
+            this.notifyRemovePlayer(player);
+        }
     }
 
     List<ServerPlayerEntity> kickPlayers() {
