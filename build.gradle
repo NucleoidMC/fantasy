@@ -3,6 +3,8 @@ plugins {
   id 'maven-publish'
 }
 
+def env = System.getenv()
+
 sourceCompatibility = JavaVersion.VERSION_1_8
 targetCompatibility = JavaVersion.VERSION_1_8
 
@@ -69,13 +71,13 @@ publishing {
   }
 
   repositories {
-    if (project.hasProperty("mavenUrl")) {
+    if (env.MAVEN_URL) {
       maven {
         credentials {
-          username project.mavenUsername ?: ""
-          password project.mavenPassword ?: ""
+          username env.MAVEN_USERNAME
+          password env.MAVEN_PASSWORD
         }
-        url project.mavenUrl ?: ""
+        url env.MAVEN_URL
       }
     } else {
       mavenLocal()
