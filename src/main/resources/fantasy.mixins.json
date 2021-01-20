@@ -5,6 +5,7 @@
   "compatibilityLevel": "JAVA_8",
   "mixins": [
     "MinecraftServerAccess",
+    "ServerChunkManagerMixin",
     "ServerWorldMixin",
     "bubble.IntegratedPlayerManagerMixin",
     "bubble.PlayerManagerMixin",

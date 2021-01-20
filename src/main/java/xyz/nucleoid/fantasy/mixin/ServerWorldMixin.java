@@ -43,6 +43,12 @@ public abstract class ServerWorldMixin implements FantasyWorldAccess {
         }
     }
 
+    @Override
+    public boolean fantasy$shouldTick() {
+        boolean shouldTick = this.tickWhenEmpty || !this.isWorldEmpty();
+        return shouldTick || this.tickTimeout > 0;
+    }
+
     private boolean isWorldEmpty() {
         return this.getPlayers().isEmpty() && this.getChunkManager().getLoadedChunkCount() <= 0;
     }
