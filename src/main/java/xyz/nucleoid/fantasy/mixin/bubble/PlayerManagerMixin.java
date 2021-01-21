@@ -37,6 +37,7 @@ import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 import xyz.nucleoid.fantasy.BubbleAccess;
 import xyz.nucleoid.fantasy.player.PlayerManagerAccess;
 import xyz.nucleoid.fantasy.player.PlayerResetter;
+import xyz.nucleoid.fantasy.util.ScreenHandlerAccess;
 
 import java.util.Map;
 import java.util.Optional;
@@ -72,6 +73,9 @@ public abstract class PlayerManagerMixin implements PlayerManagerAccess {
 
     @Shadow
     public abstract void sendWorldInfo(ServerPlayerEntity player, ServerWorld world);
+
+    @Shadow
+    public abstract void sendPlayerStatus(ServerPlayerEntity player);
 
     @Shadow
     public abstract CompoundTag getUserData();
@@ -144,6 +148,10 @@ public abstract class PlayerManagerMixin implements PlayerManagerAccess {
         this.server.getBossBarManager().onPlayerConnect(player);
 
         this.sendWorldInfo(player, world);
+        this.sendPlayerStatus(player);
+
+        // we just sent the full inventory, so we can consider the ScreenHandler as up-to-date
+        ((ScreenHandlerAccess) player.playerScreenHandler).resetTrackedState();
 
         for (StatusEffectInstance effect : player.getStatusEffects()) {
             networkHandler.sendPacket(new EntityStatusEffectS2CPacket(player.getEntityId(), effect));
