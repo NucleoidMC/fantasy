@@ -24,7 +24,7 @@ public class ScreenHandlerMixin implements ScreenHandlerAccess {
     public void resetTrackedState() {
         for (int i = 0; i < this.slots.size(); i++) {
             ItemStack stack = this.slots.get(i).getStack();
-            this.trackedStacks.set(i, stack);
+            this.trackedStacks.set(i, stack.copy());
         }
     }
 }
