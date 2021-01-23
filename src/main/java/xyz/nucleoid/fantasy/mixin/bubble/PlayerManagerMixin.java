@@ -139,6 +139,8 @@ public abstract class PlayerManagerMixin implements PlayerManagerAccess {
         networkHandler.sendPacket(new PlayerAbilitiesS2CPacket(player.abilities));
         networkHandler.sendPacket(new HeldItemChangeS2CPacket(player.inventory.selectedSlot));
 
+        player.closeHandledScreen();
+
         this.sendCommandTree(player);
         player.getRecipeBook().sendInitRecipesPacket(player);
 
