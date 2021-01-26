@@ -110,6 +110,8 @@ public abstract class PlayerManagerMixin implements PlayerManagerAccess {
     @Override
     public void teleportAndRecreate(ServerPlayerEntity player, Function<ServerPlayerEntity, ServerWorld> recreate) {
         player.detach();
+        player.setCameraEntity(player);
+
         this.savePlayerData(player);
 
         player.getAdvancementTracker().clearCriteria();
