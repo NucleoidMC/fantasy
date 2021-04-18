@@ -12,6 +12,13 @@
   },
   "mixins": ["fantasy.mixins.json"],
   "accessWidener": "fantasy.accesswidener",
+  "custom": {
+    "modmenu": {
+      "badges": [
+        "library"
+      ]
+    }
+  },
   "depends": {
     "fabricloader": ">=0.9.1",
     "fabric": "*",
