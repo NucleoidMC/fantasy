@@ -18,35 +18,36 @@ import java.util.function.BooleanSupplier;
 public abstract class ServerWorldMixin implements FantasyWorldAccess {
     private static final int TICK_TIMEOUT = 20 * 15;
 
+    @Unique
+    private boolean fantasy$tickWhenEmpty = true;
+    @Unique
+    private int fantasy$tickTimeout;
+
     @Shadow
     public abstract List<ServerPlayerEntity> getPlayers();
+
     @Shadow
     public abstract ServerChunkManager getChunkManager();
 
-    @Unique
-    private boolean tickWhenEmpty = true;
-    @Unique
-    private int tickTimeout;
-
     @Override
-    public void setTickWhenEmpty(boolean tickWhenEmpty) {
-        this.tickWhenEmpty = tickWhenEmpty;
+    public void fantasy$setTickWhenEmpty(boolean tickWhenEmpty) {
+        this.fantasy$tickWhenEmpty = tickWhenEmpty;
     }
 
     @Inject(method = "tick", at = @At("HEAD"), cancellable = true)
     private void tick(BooleanSupplier shouldKeepTicking, CallbackInfo ci) {
-        boolean shouldTick = this.tickWhenEmpty || !this.isWorldEmpty();
+        boolean shouldTick = this.fantasy$tickWhenEmpty || !this.isWorldEmpty();
         if (shouldTick) {
-            this.tickTimeout = TICK_TIMEOUT;
-        } else if (this.tickTimeout-- <= 0) {
+            this.fantasy$tickTimeout = TICK_TIMEOUT;
+        } else if (this.fantasy$tickTimeout-- <= 0) {
             ci.cancel();
         }
     }
 
     @Override
     public boolean fantasy$shouldTick() {
-        boolean shouldTick = this.tickWhenEmpty || !this.isWorldEmpty();
-        return shouldTick || this.tickTimeout > 0;
+        boolean shouldTick = this.fantasy$tickWhenEmpty || !this.isWorldEmpty();
+        return shouldTick || this.fantasy$tickTimeout > 0;
     }
 
     private boolean isWorldEmpty() {

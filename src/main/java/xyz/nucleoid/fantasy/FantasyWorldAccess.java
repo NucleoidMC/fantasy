@@ -1,7 +1,7 @@
 package xyz.nucleoid.fantasy;
 
 public interface FantasyWorldAccess {
-    void setTickWhenEmpty(boolean tickWhenEmpty);
+    void fantasy$setTickWhenEmpty(boolean tickWhenEmpty);
 
     boolean fantasy$shouldTick();
 }

@@ -4,40 +4,22 @@ import net.minecraft.world.Difficulty;
 import net.minecraft.world.GameRules;
 import net.minecraft.world.SaveProperties;
 import net.minecraft.world.level.UnmodifiableLevelProperties;
-import xyz.nucleoid.fantasy.util.GameRuleStore;
 
-public final class BubbleWorldProperties extends UnmodifiableLevelProperties {
-    private final BubbleWorldConfig config;
-    private final GameRules bubbleRules;
+public final class RuntimeWorldProperties extends UnmodifiableLevelProperties {
+    private final RuntimeWorldConfig config;
+    private final GameRules rules;
 
-    public BubbleWorldProperties(SaveProperties saveProperties, BubbleWorldConfig config) {
+    public RuntimeWorldProperties(SaveProperties saveProperties, RuntimeWorldConfig config) {
         super(saveProperties, saveProperties.getMainWorldProperties());
         this.config = config;
-        this.bubbleRules = this.createBubbleRules(config);
-    }
 
-    private GameRules createBubbleRules(BubbleWorldConfig config) {
-        GameRules bubbleRules = createDefaultRules();
-
-        GameRuleStore rules = config.getGameRules();
-        rules.applyTo(bubbleRules, null);
-
-        return bubbleRules;
-    }
-
-    private static GameRules createDefaultRules() {
-        GameRules rules = new GameRules();
-        rules.get(GameRules.DO_WEATHER_CYCLE).set(false, null);
-        rules.get(GameRules.DO_DAYLIGHT_CYCLE).set(false, null);
-        rules.get(GameRules.DO_MOB_SPAWNING).set(false, null);
-        rules.get(GameRules.ANNOUNCE_ADVANCEMENTS).set(false, null);
-        rules.get(GameRules.DO_FIRE_TICK).set(false, null);
-        return rules;
+        this.rules = new GameRules();
+        config.getGameRules().applyTo(this.rules, null);
     }
 
     @Override
     public GameRules getGameRules() {
-        return this.bubbleRules;
+        return this.rules;
     }
 
     @Override

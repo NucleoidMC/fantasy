@@ -19,8 +19,6 @@ import net.minecraft.world.World;
 import net.minecraft.world.biome.source.BiomeAccess;
 import net.minecraft.world.dimension.DimensionOptions;
 import net.minecraft.world.gen.GeneratorOptions;
-import net.minecraft.world.level.ServerWorldProperties;
-import net.minecraft.world.level.UnmodifiableLevelProperties;
 import net.minecraft.world.level.storage.LevelStorage;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -33,10 +31,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
-import java.util.function.Supplier;
 
 public final class Fantasy {
     public static final Logger LOGGER = LogManager.getLogger(Fantasy.class);
@@ -79,14 +75,14 @@ public final class Fantasy {
         }
     }
 
-    public CompletableFuture<BubbleWorldHandle> openBubble(BubbleWorldConfig config) {
+    public CompletableFuture<RuntimeWorldHandle> openTemporaryWorld(RuntimeWorldConfig config) {
         return CompletableFuture.supplyAsync(() -> {
-            BubbleWorld world = this.openBubbleWorld(config);
-            return new BubbleWorldHandle(this, world);
+            TemporaryWorld world = this.addTemporaryWorld(config);
+            return new RuntimeWorldHandle(this, world);
         }, this.server);
     }
 
-    public CompletableFuture<PersistentWorldHandle> getOrOpenPersistentWorld(Identifier key, Supplier<DimensionOptions> options) {
+    public CompletableFuture<RuntimeWorldHandle> getOrOpenPersistentWorld(Identifier key, RuntimeWorldConfig config) {
         return CompletableFuture.supplyAsync(() -> {
             RegistryKey<World> worldKey = RegistryKey.of(Registry.DIMENSION, key);
             ServerWorld world = this.server.getWorld(worldKey);
@@ -95,18 +91,20 @@ public final class Fantasy {
                 return world;
             }
 
-            // TODO: custom seeds
-            return this.openPersistentWorld(key, options.get(), new Random().nextLong());
+            return this.openPersistentWorld(key, config);
         }, this.server)
-                .thenApply(world -> new PersistentWorldHandle(this, world));
+                .thenApply(world -> new RuntimeWorldHandle(this, world));
     }
 
-    ServerWorld openPersistentWorld(Identifier key, DimensionOptions options, long seed) {
+    ServerWorld openPersistentWorld(Identifier key, RuntimeWorldConfig config) {
         RegistryKey<World> worldKey = RegistryKey.of(Registry.DIMENSION, key);
 
-        // TODO: custom properties that can be transferred with the map? (we'll have to handle saving them manually!)
-        ServerWorldProperties overworldProperties = (ServerWorldProperties) this.server.getOverworld().getLevelProperties();
-        ServerWorldProperties properties = new UnmodifiableLevelProperties(this.server.getSaveProperties(), overworldProperties);
+        DimensionOptions options = new DimensionOptions(
+                () -> config.getDimensionType(this.server),
+                config.getGenerator()
+        );
+
+        RuntimeWorldProperties properties = new RuntimeWorldProperties(this.server.getSaveProperties(), config);
 
         SimpleRegistry<DimensionOptions> dimensionsRegistry = this.getDimensionsRegistry();
         dimensionsRegistry.add(RegistryKey.of(Registry.DIMENSION_OPTIONS, key), options, Lifecycle.stable());
@@ -119,23 +117,28 @@ public final class Fantasy {
                 VoidWorldProgressListener.INSTANCE,
                 options.getChunkGenerator(),
                 false,
-                BiomeAccess.hashSeed(seed),
+                BiomeAccess.hashSeed(config.getSeed()),
                 ImmutableList.of(),
                 false
         );
 
-        this.serverAccess.getWorlds().put(worldKey, world);
-
-        ServerWorldEvents.LOAD.invoker().onWorldLoad(this.server, world);
-
-        return world;
+        return this.addWorld(world);
     }
 
-    BubbleWorld openBubbleWorld(BubbleWorldConfig config) {
-        RegistryKey<World> worldKey = RegistryKey.of(Registry.DIMENSION, this.generateBubbleKey());
+    TemporaryWorld addTemporaryWorld(RuntimeWorldConfig config) {
+        RegistryKey<World> worldKey = RegistryKey.of(Registry.DIMENSION, this.generateTemporaryWorldKey());
 
-        BubbleWorld world = new BubbleWorld(this, this.server, worldKey, config);
-        this.serverAccess.getWorlds().put(worldKey, world);
+        try {
+            LevelStorage.Session session = this.serverAccess.getSession();
+            FileUtils.forceDeleteOnExit(session.getWorldDirectory(worldKey));
+        } catch (IOException ignored) {
+        }
+
+        return this.addWorld(new TemporaryWorld(this, this.server, worldKey, config));
+    }
+
+    private <T extends ServerWorld> T addWorld(T world) {
+        this.serverAccess.getWorlds().put(world.getRegistryKey(), world);
 
         ServerWorldEvents.LOAD.invoker().onWorldLoad(this.server, world);
 
@@ -203,21 +206,21 @@ public final class Fantasy {
     }
 
     private void onServerStopping() {
-        List<BubbleWorld> bubbles = this.collectBubbleWorlds();
-        for (BubbleWorld bubble : bubbles) {
-            this.kickPlayers(bubble);
-            this.deleteWorld(bubble);
+        List<TemporaryWorld> temporaryWorlds = this.collectTemporaryWorlds();
+        for (TemporaryWorld temporary : temporaryWorlds) {
+            this.kickPlayers(temporary);
+            this.deleteWorld(temporary);
         }
     }
 
-    private List<BubbleWorld> collectBubbleWorlds() {
-        List<BubbleWorld> bubbles = new ArrayList<>();
+    private List<TemporaryWorld> collectTemporaryWorlds() {
+        List<TemporaryWorld> temporaryWorlds = new ArrayList<>();
         for (ServerWorld world : this.server.getWorlds()) {
-            if (world instanceof BubbleWorld) {
-                bubbles.add(((BubbleWorld) world));
+            if (world instanceof TemporaryWorld) {
+                temporaryWorlds.add(((TemporaryWorld) world));
             }
         }
-        return bubbles;
+        return temporaryWorlds;
     }
 
     private SimpleRegistry<DimensionOptions> getDimensionsRegistry() {
@@ -225,8 +228,8 @@ public final class Fantasy {
         return generatorOptions.getDimensions();
     }
 
-    private Identifier generateBubbleKey() {
-        String random = RandomStringUtils.random(16, "abcdefghijklmnopqrstuvwxyz0123456789");
-        return new Identifier(Fantasy.ID, "bubble_" + random);
+    private Identifier generateTemporaryWorldKey() {
+        String key = RandomStringUtils.random(16, "abcdefghijklmnopqrstuvwxyz0123456789");
+        return new Identifier(Fantasy.ID, key);
     }
 }
