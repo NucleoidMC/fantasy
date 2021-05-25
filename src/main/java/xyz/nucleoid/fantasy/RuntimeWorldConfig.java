@@ -9,6 +9,12 @@ import net.minecraft.world.gen.chunk.ChunkGenerator;
 import org.jetbrains.annotations.Nullable;
 import xyz.nucleoid.fantasy.util.GameRuleStore;
 
+/**
+ * A configuration describing how a runtime world should be constructed. This includes properties such as the dimension
+ * type, chunk generator, and game rules.
+ *
+ * @see Fantasy
+ */
 public final class RuntimeWorldConfig {
     private long seed = 0;
     private RegistryKey<DimensionType> dimensionType = DimensionType.OVERWORLD_REGISTRY_KEY;

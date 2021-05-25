@@ -34,6 +34,15 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
+/**
+ * Fantasy is a library that allows for dimensions to be created and destroyed at runtime on the server.
+ * It supports both temporary dimensions which do not get saved, as well as persistent dimensions which can be safely
+ * used across server restarts.
+ *
+ * @see Fantasy#get(MinecraftServer)
+ * @see Fantasy#openTemporaryWorld(RuntimeWorldConfig)
+ * @see Fantasy#getOrOpenPersistentWorld(Identifier, RuntimeWorldConfig)
+ */
 public final class Fantasy {
     public static final Logger LOGGER = LogManager.getLogger(Fantasy.class);
     public static final String ID = "fantasy";
@@ -62,6 +71,12 @@ public final class Fantasy {
         this.serverAccess = (MinecraftServerAccess) server;
     }
 
+    /**
+     * Gets the {@link Fantasy} instance for the given server instance.
+     *
+     * @param server the server to work with
+     * @return the {@link Fantasy} instance to work with runtime dimensions
+     */
     public static Fantasy get(MinecraftServer server) {
         if (instance == null || instance.server != server) {
             instance = new Fantasy(server);
@@ -75,6 +90,17 @@ public final class Fantasy {
         }
     }
 
+    /**
+     * Creates a new temporary world with the given {@link RuntimeWorldConfig} that will not be saved and will be
+     * deleted when the server exits.
+     * <p>
+     * The created world is returned asynchronously through a {@link RuntimeWorldHandle}.
+     * This handle can be used to acquire the {@link ServerWorld} object through {@link RuntimeWorldHandle#asWorld()},
+     * as well as to delete the world through {@link RuntimeWorldHandle#delete()}.
+     *
+     * @param config the config with which to construct this temporary world
+     * @return a future providing the created world
+     */
     public CompletableFuture<RuntimeWorldHandle> openTemporaryWorld(RuntimeWorldConfig config) {
         return CompletableFuture.supplyAsync(() -> {
             TemporaryWorld world = this.addTemporaryWorld(config);
@@ -82,21 +108,39 @@ public final class Fantasy {
         }, this.server);
     }
 
+    /**
+     * Gets or creates a new persistent world with the given identifier and {@link RuntimeWorldConfig}. These worlds
+     * will be saved to disk and can be restored after a server restart.
+     * <p>
+     * If a world with this identifier exists already, it will be returned and no new world will be constructed.
+     * <p>
+     * <b>Note!</b> These persistent worlds will not be automatically restored! This function
+     * must be called after a server restart with the relevant identifier and configuration such that it can be loaded.
+     * <p>
+     * The created world is returned asynchronously through a {@link RuntimeWorldHandle}.
+     * This handle can be used to acquire the {@link ServerWorld} object through {@link RuntimeWorldHandle#asWorld()},
+     * as well as to delete the world through {@link RuntimeWorldHandle#delete()}.
+     *
+     * @param key the unique identifier for this dimension
+     * @param config the config with which to construct this persistent world
+     * @return a future providing the created world
+     */
     public CompletableFuture<RuntimeWorldHandle> getOrOpenPersistentWorld(Identifier key, RuntimeWorldConfig config) {
         return CompletableFuture.supplyAsync(() -> {
             RegistryKey<World> worldKey = RegistryKey.of(Registry.DIMENSION, key);
+
             ServerWorld world = this.server.getWorld(worldKey);
-            if (world != null) {
+            if (world == null) {
+                world = this.addPersistentWorld(key, config);
+            } else {
                 this.deletionQueue.remove(world);
-                return world;
             }
 
-            return this.openPersistentWorld(key, config);
-        }, this.server)
-                .thenApply(world -> new RuntimeWorldHandle(this, world));
+            return new RuntimeWorldHandle(this, world);
+        }, this.server);
     }
 
-    ServerWorld openPersistentWorld(Identifier key, RuntimeWorldConfig config) {
+    ServerWorld addPersistentWorld(Identifier key, RuntimeWorldConfig config) {
         RegistryKey<World> worldKey = RegistryKey.of(Registry.DIMENSION, key);
 
         DimensionOptions options = new DimensionOptions(
