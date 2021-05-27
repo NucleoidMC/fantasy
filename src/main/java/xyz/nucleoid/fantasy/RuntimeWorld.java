@@ -1,6 +1,5 @@
 package xyz.nucleoid.fantasy;
 
-import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.world.ServerWorld;
@@ -13,23 +12,15 @@ import org.jetbrains.annotations.Nullable;
 import xyz.nucleoid.fantasy.mixin.MinecraftServerAccess;
 import xyz.nucleoid.fantasy.util.VoidWorldProgressListener;
 
-import java.io.IOException;
+class RuntimeWorld extends ServerWorld {
+    final Style style;
 
-class TemporaryWorld extends ServerWorld {
-    private final Fantasy fantasy;
-    final RuntimeWorldConfig config;
-
-    TemporaryWorld(
-            Fantasy fantasy,
-            MinecraftServer server,
-            RegistryKey<World> registryKey,
-            RuntimeWorldConfig config
-    ) {
+    RuntimeWorld(MinecraftServer server, RegistryKey<World> registryKey, RuntimeWorldConfig config, Style style) {
         super(
                 server, Util.getMainWorkerExecutor(), ((MinecraftServerAccess) server).getSession(),
                 new RuntimeWorldProperties(server.getSaveProperties(), config),
                 registryKey,
-                Preconditions.checkNotNull(config.getDimensionType(server), "invalid dimension type!"),
+                config.createDimensionOptions(server).getDimensionType(),
                 VoidWorldProgressListener.INSTANCE,
                 config.getGenerator(),
                 false,
@@ -37,20 +28,18 @@ class TemporaryWorld extends ServerWorld {
                 ImmutableList.of(),
                 false
         );
-        this.fantasy = fantasy;
-        this.config = config;
-    }
-
-    @Override
-    public void close() throws IOException {
-        super.close();
-        this.fantasy.enqueueWorldDeletion(this);
+        this.style = style;
     }
 
     @Override
     public void save(@Nullable ProgressListener progressListener, boolean flush, boolean enabled) {
-        if (!flush) {
+        if (this.style == Style.PERSISTENT || !flush) {
             super.save(progressListener, flush, enabled);
         }
+    }
+
+    public enum Style {
+        PERSISTENT,
+        TEMPORARY
     }
 }

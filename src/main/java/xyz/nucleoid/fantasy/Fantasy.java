@@ -1,33 +1,23 @@
 package xyz.nucleoid.fantasy;
 
-import com.google.common.collect.ImmutableList;
-import com.mojang.serialization.Lifecycle;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
-import net.fabricmc.fabric.api.event.lifecycle.v1.ServerWorldEvents;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.Util;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.registry.Registry;
 import net.minecraft.util.registry.RegistryKey;
-import net.minecraft.util.registry.SimpleRegistry;
 import net.minecraft.world.World;
-import net.minecraft.world.biome.source.BiomeAccess;
-import net.minecraft.world.dimension.DimensionOptions;
-import net.minecraft.world.gen.GeneratorOptions;
 import net.minecraft.world.level.storage.LevelStorage;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import xyz.nucleoid.fantasy.mixin.MinecraftServerAccess;
-import xyz.nucleoid.fantasy.util.VoidWorldProgressListener;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -52,6 +42,9 @@ public final class Fantasy {
     private final MinecraftServer server;
     private final MinecraftServerAccess serverAccess;
 
+    private final RuntimeWorldManager worldManager;
+
+    private final DelayedWorldQueue delayedWorlds = new DelayedWorldQueue();
     private final Set<ServerWorld> deletionQueue = new ReferenceOpenHashSet<>();
 
     static {
@@ -69,6 +62,8 @@ public final class Fantasy {
     private Fantasy(MinecraftServer server) {
         this.server = server;
         this.serverAccess = (MinecraftServerAccess) server;
+
+        this.worldManager = new RuntimeWorldManager(server);
     }
 
     /**
@@ -85,8 +80,11 @@ public final class Fantasy {
     }
 
     private void tick() {
-        if (!this.deletionQueue.isEmpty()) {
-            this.deletionQueue.removeIf(this::tickDeleteWorld);
+        this.delayedWorlds.tick(this);
+
+        Set<ServerWorld> deletionQueue = this.deletionQueue;
+        if (!deletionQueue.isEmpty()) {
+            deletionQueue.removeIf(this::tickDeleteWorld);
         }
     }
 
@@ -102,10 +100,17 @@ public final class Fantasy {
      * @return a future providing the created world
      */
     public CompletableFuture<RuntimeWorldHandle> openTemporaryWorld(RuntimeWorldConfig config) {
-        return CompletableFuture.supplyAsync(() -> {
-            TemporaryWorld world = this.addTemporaryWorld(config);
-            return new RuntimeWorldHandle(this, world);
-        }, this.server);
+        CompletableFuture<RuntimeWorldHandle> future = new CompletableFuture<>();
+        this.server.submit(() -> {
+            try {
+                RuntimeWorld world = this.addTemporaryWorld(config);
+                this.delayedWorlds.submit(world, future);
+            } catch (Throwable throwable) {
+                future.completeExceptionally(throwable);
+            }
+        });
+
+        return future;
     }
 
     /**
@@ -126,51 +131,34 @@ public final class Fantasy {
      * @return a future providing the created world
      */
     public CompletableFuture<RuntimeWorldHandle> getOrOpenPersistentWorld(Identifier key, RuntimeWorldConfig config) {
-        return CompletableFuture.supplyAsync(() -> {
-            RegistryKey<World> worldKey = RegistryKey.of(Registry.DIMENSION, key);
+        CompletableFuture<RuntimeWorldHandle> future = new CompletableFuture<>();
+        this.server.submit(() -> {
+            try {
+                RegistryKey<World> worldKey = RegistryKey.of(Registry.DIMENSION, key);
 
-            ServerWorld world = this.server.getWorld(worldKey);
-            if (world == null) {
-                world = this.addPersistentWorld(key, config);
-            } else {
-                this.deletionQueue.remove(world);
+                ServerWorld world = this.server.getWorld(worldKey);
+                if (world == null) {
+                    world = this.addPersistentWorld(key, config);
+                    this.delayedWorlds.submit(world, future);
+                } else {
+                    this.deletionQueue.remove(world);
+                    future.complete(new RuntimeWorldHandle(this, world));
+                }
+            } catch (Throwable throwable) {
+                future.completeExceptionally(throwable);
             }
+        });
 
-            return new RuntimeWorldHandle(this, world);
-        }, this.server);
+        return future;
     }
 
-    ServerWorld addPersistentWorld(Identifier key, RuntimeWorldConfig config) {
+    private RuntimeWorld addPersistentWorld(Identifier key, RuntimeWorldConfig config) {
         RegistryKey<World> worldKey = RegistryKey.of(Registry.DIMENSION, key);
-
-        DimensionOptions options = new DimensionOptions(
-                () -> config.getDimensionType(this.server),
-                config.getGenerator()
-        );
-
-        RuntimeWorldProperties properties = new RuntimeWorldProperties(this.server.getSaveProperties(), config);
-
-        SimpleRegistry<DimensionOptions> dimensionsRegistry = this.getDimensionsRegistry();
-        dimensionsRegistry.add(RegistryKey.of(Registry.DIMENSION_OPTIONS, key), options, Lifecycle.stable());
-
-        ServerWorld world = new ServerWorld(
-                this.server, Util.getMainWorkerExecutor(), ((MinecraftServerAccess) this.server).getSession(),
-                properties,
-                worldKey,
-                options.getDimensionType(),
-                VoidWorldProgressListener.INSTANCE,
-                options.getChunkGenerator(),
-                false,
-                BiomeAccess.hashSeed(config.getSeed()),
-                ImmutableList.of(),
-                false
-        );
-
-        return this.addWorld(world);
+        return this.worldManager.add(worldKey, config, RuntimeWorld.Style.PERSISTENT);
     }
 
-    TemporaryWorld addTemporaryWorld(RuntimeWorldConfig config) {
-        RegistryKey<World> worldKey = RegistryKey.of(Registry.DIMENSION, this.generateTemporaryWorldKey());
+    private RuntimeWorld addTemporaryWorld(RuntimeWorldConfig config) {
+        RegistryKey<World> worldKey = RegistryKey.of(Registry.DIMENSION, generateTemporaryWorldKey());
 
         try {
             LevelStorage.Session session = this.serverAccess.getSession();
@@ -178,26 +166,18 @@ public final class Fantasy {
         } catch (IOException ignored) {
         }
 
-        return this.addWorld(new TemporaryWorld(this, this.server, worldKey, config));
-    }
-
-    private <T extends ServerWorld> T addWorld(T world) {
-        this.serverAccess.getWorlds().put(world.getRegistryKey(), world);
-
-        ServerWorldEvents.LOAD.invoker().onWorldLoad(this.server, world);
-
-        return world;
+        return this.worldManager.add(worldKey, config, RuntimeWorld.Style.TEMPORARY);
     }
 
     void enqueueWorldDeletion(ServerWorld world) {
-        CompletableFuture.runAsync(() -> {
+        this.server.submit(() -> {
             this.deletionQueue.add(world);
-        }, this.server);
+        });
     }
 
     private boolean tickDeleteWorld(ServerWorld world) {
         if (this.isWorldUnloaded(world)) {
-            this.deleteWorld(world);
+            this.worldManager.delete(world);
             return true;
         } else {
             this.kickPlayers(world);
@@ -224,55 +204,28 @@ public final class Fantasy {
         return world.getPlayers().isEmpty() && world.getChunkManager().getLoadedChunkCount() <= 0;
     }
 
-    private void deleteWorld(ServerWorld world) {
-        RegistryKey<World> dimensionKey = world.getRegistryKey();
-
-        if (this.serverAccess.getWorlds().remove(dimensionKey, world)) {
-            ServerWorldEvents.UNLOAD.invoker().onWorldUnload(this.server, world);
-
-            SimpleRegistry<DimensionOptions> dimensionsRegistry = this.getDimensionsRegistry();
-            RemoveFromRegistry.remove(dimensionsRegistry, dimensionKey.getValue());
-
-            LevelStorage.Session session = this.serverAccess.getSession();
-            File worldDirectory = session.getWorldDirectory(dimensionKey);
-            if (worldDirectory.exists()) {
-                try {
-                    FileUtils.deleteDirectory(worldDirectory);
-                } catch (IOException e) {
-                    Fantasy.LOGGER.warn("Failed to delete world directory", e);
-                    try {
-                        FileUtils.forceDeleteOnExit(worldDirectory);
-                    } catch (IOException ignored) {
-                    }
-                }
-            }
-        }
-    }
-
     private void onServerStopping() {
-        List<TemporaryWorld> temporaryWorlds = this.collectTemporaryWorlds();
-        for (TemporaryWorld temporary : temporaryWorlds) {
+        List<RuntimeWorld> temporaryWorlds = this.collectTemporaryWorlds();
+        for (RuntimeWorld temporary : temporaryWorlds) {
             this.kickPlayers(temporary);
-            this.deleteWorld(temporary);
+            this.worldManager.delete(temporary);
         }
     }
 
-    private List<TemporaryWorld> collectTemporaryWorlds() {
-        List<TemporaryWorld> temporaryWorlds = new ArrayList<>();
+    private List<RuntimeWorld> collectTemporaryWorlds() {
+        List<RuntimeWorld> temporaryWorlds = new ArrayList<>();
         for (ServerWorld world : this.server.getWorlds()) {
-            if (world instanceof TemporaryWorld) {
-                temporaryWorlds.add(((TemporaryWorld) world));
+            if (world instanceof RuntimeWorld) {
+                RuntimeWorld runtimeWorld = (RuntimeWorld) world;
+                if (runtimeWorld.style == RuntimeWorld.Style.TEMPORARY) {
+                    temporaryWorlds.add(runtimeWorld);
+                }
             }
         }
         return temporaryWorlds;
     }
 
-    private SimpleRegistry<DimensionOptions> getDimensionsRegistry() {
-        GeneratorOptions generatorOptions = this.server.getSaveProperties().getGeneratorOptions();
-        return generatorOptions.getDimensions();
-    }
-
-    private Identifier generateTemporaryWorldKey() {
+    private static Identifier generateTemporaryWorldKey() {
         String key = RandomStringUtils.random(16, "abcdefghijklmnopqrstuvwxyz0123456789");
         return new Identifier(Fantasy.ID, key);
     }

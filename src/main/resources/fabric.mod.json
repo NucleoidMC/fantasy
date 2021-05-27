@@ -14,9 +14,7 @@
   "accessWidener": "fantasy.accesswidener",
   "custom": {
     "modmenu": {
-      "badges": [
-        "library"
-      ]
+      "badges": ["library"]
     }
   },
   "depends": {

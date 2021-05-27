@@ -1,9 +1,11 @@
 package xyz.nucleoid.fantasy;
 
+import com.google.common.base.Preconditions;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.registry.RegistryKey;
 import net.minecraft.world.Difficulty;
 import net.minecraft.world.GameRules;
+import net.minecraft.world.dimension.DimensionOptions;
 import net.minecraft.world.dimension.DimensionType;
 import net.minecraft.world.gen.chunk.ChunkGenerator;
 import org.jetbrains.annotations.Nullable;
@@ -101,9 +103,11 @@ public final class RuntimeWorldConfig {
         return this.dimensionType;
     }
 
-    @Nullable
-    public DimensionType getDimensionType(MinecraftServer server) {
-        return server.getRegistryManager().getDimensionTypes().get(this.dimensionType);
+    public DimensionOptions createDimensionOptions(MinecraftServer server) {
+        DimensionType dimensionType = server.getRegistryManager().getDimensionTypes().get(this.dimensionType);
+        Preconditions.checkNotNull(dimensionType, "invalid dimension type " + this.dimensionType);
+
+        return new DimensionOptions(() -> dimensionType, this.generator);
     }
 
     @Nullable
