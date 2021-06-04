@@ -3,8 +3,6 @@ plugins {
   id 'maven-publish'
 }
 
-def env = System.getenv()
-
 sourceCompatibility = JavaVersion.VERSION_16
 targetCompatibility = JavaVersion.VERSION_16
 
@@ -17,7 +15,7 @@ minecraft {
 }
 
 repositories {
-  maven { url = "https://jitpack.io/" }
+  maven { url = "https://maven.gegy.dev/" }
 }
 
 dependencies {
@@ -27,26 +25,26 @@ dependencies {
 
   modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 
-  modRuntime("com.github.SuperCoder7979:databreaker:0.2.6") {
+  modRuntime("supercoder79:databreaker:0.2.7") {
     exclude module: "fabric-loader"
   }
 }
 
 processResources {
-	inputs.property "version", project.version
+  inputs.property "version", project.version
 
-	filesMatching("fabric.mod.json") {
-		expand "version": project.version
-	}
+  filesMatching("fabric.mod.json") {
+    expand "version": project.version
+  }
 }
 
-tasks.withType(JavaCompile) {
-  options.encoding = "UTF-8"
+tasks.withType(JavaCompile).configureEach {
+  it.options.encoding = "UTF-8"
+  it.options.release = 16
 }
 
-task sourcesJar(type: Jar, dependsOn: classes) {
-  classifier = "sources"
-  from sourceSets.main.allSource
+java {
+  withSourcesJar()
 }
 
 jar {
@@ -66,6 +64,7 @@ publishing {
   }
 
   repositories {
+    def env = System.getenv()
     if (env.MAVEN_URL) {
       maven {
         credentials {
