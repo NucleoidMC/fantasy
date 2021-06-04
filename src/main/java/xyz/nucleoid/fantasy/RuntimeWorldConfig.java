@@ -21,7 +21,8 @@ import xyz.nucleoid.fantasy.util.GameRuleStore;
  */
 public final class RuntimeWorldConfig {
     private long seed = 0;
-    private RegistryKey<DimensionType> dimensionType = DimensionType.OVERWORLD_REGISTRY_KEY;
+    private RegistryKey<DimensionType> dimensionTypeKey = DimensionType.OVERWORLD_REGISTRY_KEY;
+    private DimensionType dimensionType;
     private ChunkGenerator generator = null;
     private long timeOfDay = 6000;
     private Difficulty difficulty = Difficulty.NORMAL;
@@ -38,8 +39,15 @@ public final class RuntimeWorldConfig {
         return this;
     }
 
-    public RuntimeWorldConfig setDimensionType(RegistryKey<DimensionType> dimensionType) {
+    public RuntimeWorldConfig setDimensionType(DimensionType dimensionType) {
         this.dimensionType = dimensionType;
+        this.dimensionTypeKey = null;
+        return this;
+    }
+
+    public RuntimeWorldConfig setDimensionType(RegistryKey<DimensionType> dimensionType) {
+        this.dimensionTypeKey = dimensionType;
+        this.dimensionType = null;
         return this;
     }
 
@@ -101,15 +109,18 @@ public final class RuntimeWorldConfig {
         return this.seed;
     }
 
-    public RegistryKey<DimensionType> getDimensionType() {
-        return this.dimensionType;
+    public DimensionOptions createDimensionOptions(MinecraftServer server) {
+        DimensionType dimensionType = this.resolveDimensionType(server);
+        return new DimensionOptions(() -> dimensionType, this.generator);
     }
 
-    public DimensionOptions createDimensionOptions(MinecraftServer server) {
-        DimensionType dimensionType = server.getRegistryManager().get(Registry.DIMENSION_TYPE_KEY).get(this.dimensionType);
-        Preconditions.checkNotNull(dimensionType, "invalid dimension type " + this.dimensionType);
-
-        return new DimensionOptions(() -> dimensionType, this.generator);
+    private DimensionType resolveDimensionType(MinecraftServer server) {
+        DimensionType dimensionType = this.dimensionType;
+        if (dimensionType == null) {
+            dimensionType = server.getRegistryManager().get(Registry.DIMENSION_TYPE_KEY).get(this.dimensionType);
+            Preconditions.checkNotNull(dimensionType, "invalid dimension type " + this.dimensionTypeKey);
+        }
+        return dimensionType;
     }
 
     @Nullable
