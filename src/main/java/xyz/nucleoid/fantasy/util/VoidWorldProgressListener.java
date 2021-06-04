@@ -20,6 +20,11 @@ public final class VoidWorldProgressListener implements WorldGenerationProgressL
     }
 
     @Override
+    public void start() {
+
+    }
+
+    @Override
     public void stop() {
     }
 }

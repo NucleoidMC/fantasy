@@ -30,7 +30,7 @@ final class RuntimeWorldManager {
         DimensionOptions options = config.createDimensionOptions(this.server);
 
         SimpleRegistry<DimensionOptions> dimensionsRegistry = getDimensionsRegistry(this.server);
-        dimensionsRegistry.add(RegistryKey.of(Registry.DIMENSION_OPTIONS, worldKey.getValue()), options, Lifecycle.stable());
+        dimensionsRegistry.add(RegistryKey.of(Registry.DIMENSION_KEY, worldKey.getValue()), options, Lifecycle.stable());
 
         RuntimeWorld world = new RuntimeWorld(this.server, worldKey, config, style);
 

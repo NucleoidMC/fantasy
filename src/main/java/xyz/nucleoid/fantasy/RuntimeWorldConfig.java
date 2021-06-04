@@ -2,6 +2,8 @@ package xyz.nucleoid.fantasy;
 
 import com.google.common.base.Preconditions;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.util.Identifier;
+import net.minecraft.util.registry.Registry;
 import net.minecraft.util.registry.RegistryKey;
 import net.minecraft.world.Difficulty;
 import net.minecraft.world.GameRules;
@@ -104,7 +106,7 @@ public final class RuntimeWorldConfig {
     }
 
     public DimensionOptions createDimensionOptions(MinecraftServer server) {
-        DimensionType dimensionType = server.getRegistryManager().getDimensionTypes().get(this.dimensionType);
+        DimensionType dimensionType = server.getRegistryManager().get(Registry.DIMENSION_TYPE_KEY).get(this.dimensionType);
         Preconditions.checkNotNull(dimensionType, "invalid dimension type " + this.dimensionType);
 
         return new DimensionOptions(() -> dimensionType, this.generator);
