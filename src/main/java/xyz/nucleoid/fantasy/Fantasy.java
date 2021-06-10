@@ -1,5 +1,6 @@
 package xyz.nucleoid.fantasy;
 
+import com.google.common.base.Preconditions;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
@@ -22,7 +23,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.CompletableFuture;
 
 /**
  * Fantasy is a library that allows for dimensions to be created and destroyed at runtime on the server.
@@ -44,7 +44,6 @@ public final class Fantasy {
 
     private final RuntimeWorldManager worldManager;
 
-    private final DelayedWorldQueue delayedWorlds = new DelayedWorldQueue();
     private final Set<ServerWorld> deletionQueue = new ReferenceOpenHashSet<>();
 
     static {
@@ -73,15 +72,16 @@ public final class Fantasy {
      * @return the {@link Fantasy} instance to work with runtime dimensions
      */
     public static Fantasy get(MinecraftServer server) {
+        Preconditions.checkState(server.isOnThread(), "cannot create worlds from off-thread!");
+
         if (instance == null || instance.server != server) {
             instance = new Fantasy(server);
         }
+
         return instance;
     }
 
     private void tick() {
-        this.delayedWorlds.tick(this);
-
         Set<ServerWorld> deletionQueue = this.deletionQueue;
         if (!deletionQueue.isEmpty()) {
             deletionQueue.removeIf(this::tickDeleteWorld);
@@ -99,18 +99,9 @@ public final class Fantasy {
      * @param config the config with which to construct this temporary world
      * @return a future providing the created world
      */
-    public CompletableFuture<RuntimeWorldHandle> openTemporaryWorld(RuntimeWorldConfig config) {
-        CompletableFuture<RuntimeWorldHandle> future = new CompletableFuture<>();
-        this.server.submit(() -> {
-            try {
-                RuntimeWorld world = this.addTemporaryWorld(config);
-                this.delayedWorlds.submit(world, future);
-            } catch (Throwable throwable) {
-                future.completeExceptionally(throwable);
-            }
-        });
-
-        return future;
+    public RuntimeWorldHandle openTemporaryWorld(RuntimeWorldConfig config) {
+        RuntimeWorld world = this.addTemporaryWorld(config);
+        return new RuntimeWorldHandle(this, world);
     }
 
     /**
@@ -130,26 +121,17 @@ public final class Fantasy {
      * @param config the config with which to construct this persistent world
      * @return a future providing the created world
      */
-    public CompletableFuture<RuntimeWorldHandle> getOrOpenPersistentWorld(Identifier key, RuntimeWorldConfig config) {
-        CompletableFuture<RuntimeWorldHandle> future = new CompletableFuture<>();
-        this.server.submit(() -> {
-            try {
-                RegistryKey<World> worldKey = RegistryKey.of(Registry.DIMENSION, key);
+    public RuntimeWorldHandle getOrOpenPersistentWorld(Identifier key, RuntimeWorldConfig config) {
+        RegistryKey<World> worldKey = RegistryKey.of(Registry.DIMENSION, key);
 
-                ServerWorld world = this.server.getWorld(worldKey);
-                if (world == null) {
-                    world = this.addPersistentWorld(key, config);
-                    this.delayedWorlds.submit(world, future);
-                } else {
-                    this.deletionQueue.remove(world);
-                    future.complete(new RuntimeWorldHandle(this, world));
-                }
-            } catch (Throwable throwable) {
-                future.completeExceptionally(throwable);
-            }
-        });
+        ServerWorld world = this.server.getWorld(worldKey);
+        if (world == null) {
+            world = this.addPersistentWorld(key, config);
+        } else {
+            this.deletionQueue.remove(world);
+        }
 
-        return future;
+        return new RuntimeWorldHandle(this, world);
     }
 
     private RuntimeWorld addPersistentWorld(Identifier key, RuntimeWorldConfig config) {
