@@ -44,15 +44,14 @@ Values such as difficulty, game rules, and weather can all be configured per-wor
 #### Creating a temporary dimension
 Once we have a runtime world config, creating a temporary dimension is simple:
 ```java
-CompletableFuture<RuntimeWorldHandle> future = fantasy.openTemporaryWorld(worldConfig);
-future.thenAccept(worldHandle -> {
-    // when the temporary world is created, set a block
-    ServerWorld world = worldHandle.asWorld();
-    world.setBlockState(BlockPos.ORIGIN, Blocks.STONE.getDefaultState());
+RuntimeWorldHandle worldHandle = fantasy.openTemporaryWorld(worldConfig);
 
-    // we don't need the world anymore, delete it!
-    worldHandle.delete();
-});
+// set a block in our created temporary world!
+ServerWorld world = worldHandle.asWorld();
+world.setBlockState(BlockPos.ORIGIN, Blocks.STONE.getDefaultState());
+
+// we don't need the world anymore, delete it!
+worldHandle.delete();
 ```
 Explicit deletion is not strictly required for temporary worlds: they will be automatically cleaned up when the server exits.
 However, it is generally a good idea to delete old worlds if they're not in use anymore.
@@ -61,12 +60,11 @@ However, it is generally a good idea to delete old worlds if they're not in use 
 Persistent dimensions work along very similar lines to temporary dimensions:
 
 ```java
-CompletableFuture<RuntimeWorldHandle> future = fantasy.getOrOpenPersistentWorld(new Identifier("foo", "bar"), config);
-future.thenAccept(worldHandle -> {
-    // when the persistent world is created, set a block
-    ServerWorld world = worldHandle.asWorld();
-    world.setBlockState(BlockPos.ORIGIN, Blocks.STONE.getDefaultState());
-});
+RuntimeWorldHandle worldHandle = fantasy.getOrOpenPersistentWorld(new Identifier("foo", "bar"), config);
+
+// set a block in our created persistent world!
+ServerWorld world = worldHandle.asWorld();
+world.setBlockState(BlockPos.ORIGIN, Blocks.STONE.getDefaultState());
 ```
 
 The main difference involves the addition of an `Identifier` parameter which much be specified to name your dimension uniquely.
