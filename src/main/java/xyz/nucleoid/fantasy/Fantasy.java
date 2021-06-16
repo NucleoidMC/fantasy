@@ -122,7 +122,7 @@ public final class Fantasy {
      * @return a future providing the created world
      */
     public RuntimeWorldHandle getOrOpenPersistentWorld(Identifier key, RuntimeWorldConfig config) {
-        RegistryKey<World> worldKey = RegistryKey.of(Registry.DIMENSION, key);
+        RegistryKey<World> worldKey = RegistryKey.of(Registry.WORLD_KEY, key);
 
         ServerWorld world = this.server.getWorld(worldKey);
         if (world == null) {
@@ -135,12 +135,12 @@ public final class Fantasy {
     }
 
     private RuntimeWorld addPersistentWorld(Identifier key, RuntimeWorldConfig config) {
-        RegistryKey<World> worldKey = RegistryKey.of(Registry.DIMENSION, key);
+        RegistryKey<World> worldKey = RegistryKey.of(Registry.WORLD_KEY, key);
         return this.worldManager.add(worldKey, config, RuntimeWorld.Style.PERSISTENT);
     }
 
     private RuntimeWorld addTemporaryWorld(RuntimeWorldConfig config) {
-        RegistryKey<World> worldKey = RegistryKey.of(Registry.DIMENSION, generateTemporaryWorldKey());
+        RegistryKey<World> worldKey = RegistryKey.of(Registry.WORLD_KEY, generateTemporaryWorldKey());
 
         try {
             LevelStorage.Session session = this.serverAccess.getSession();
