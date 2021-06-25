@@ -1,6 +1,8 @@
 package xyz.nucleoid.fantasy;
 
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.util.registry.RegistryKey;
+import net.minecraft.world.World;
 
 public final class RuntimeWorldHandle {
     private final Fantasy fantasy;
@@ -21,5 +23,9 @@ public final class RuntimeWorldHandle {
 
     public ServerWorld asWorld() {
         return this.world;
+    }
+
+    public RegistryKey<World> getRegistryKey() {
+        return this.world.getRegistryKey();
     }
 }

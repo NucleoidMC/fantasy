@@ -17,6 +17,18 @@ public final class GameRuleStore {
         this.intRules.put(key, value);
     }
 
+    public boolean getBoolean(GameRules.Key<GameRules.BooleanRule> key) {
+        return this.booleanRules.getBoolean(key);
+    }
+
+    public int getInt(GameRules.Key<GameRules.IntRule> key) {
+        return this.intRules.getInt(key);
+    }
+
+    public boolean contains(GameRules.Key<?> key) {
+        return this.booleanRules.containsKey(key) || this.intRules.containsKey(key);
+    }
+
     public void applyTo(GameRules rules, @Nullable MinecraftServer server) {
         Reference2BooleanMaps.fastForEach(this.booleanRules, entry -> {
             GameRules.BooleanRule rule = rules.get(entry.getKey());
