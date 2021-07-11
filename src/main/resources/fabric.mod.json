@@ -3,12 +3,12 @@
   "id": "fantasy",
   "version": "${version}",
   "name": "Fantasy",
-  "description": "Dynamic dimensions",
+  "description": "Fantasy is a library that allows for dimensions to be created and destroyed at runtime on the server.",
   "authors": ["Nucleoid Contributors"],
   "license": "LGPLv3",
   "environment": "*",
   "entrypoints": {
-    "main": []
+    "main": ["xyz.nucleoid.fantasy.FantasyInitializer"]
   },
   "mixins": ["fantasy.mixins.json"],
   "accessWidener": "fantasy.accesswidener",
