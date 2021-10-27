@@ -21,7 +21,7 @@ import xyz.nucleoid.fantasy.util.GameRuleStore;
  */
 public final class RuntimeWorldConfig {
     private long seed = 0;
-    private RegistryKey<DimensionType> dimensionTypeKey = DimensionType.OVERWORLD_REGISTRY_KEY;
+    private RegistryKey<DimensionType> dimensionTypeKey = Fantasy.DEFAULT_DIM_TYPE;
     private DimensionType dimensionType;
     private ChunkGenerator generator = null;
     private long timeOfDay = 6000;
