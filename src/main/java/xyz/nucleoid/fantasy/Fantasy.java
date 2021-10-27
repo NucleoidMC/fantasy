@@ -12,6 +12,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.registry.Registry;
 import net.minecraft.util.registry.RegistryKey;
 import net.minecraft.world.World;
+import net.minecraft.world.dimension.DimensionType;
 import net.minecraft.world.level.storage.LevelStorage;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -36,6 +37,7 @@ import java.util.Set;
 public final class Fantasy {
     public static final Logger LOGGER = LogManager.getLogger(Fantasy.class);
     public static final String ID = "fantasy";
+    public static final RegistryKey<DimensionType> DEFAULT_DIM_TYPE = RegistryKey.of(Registry.DIMENSION_TYPE_KEY,  new Identifier(Fantasy.ID, "default"));
 
     private static Fantasy instance;
 
