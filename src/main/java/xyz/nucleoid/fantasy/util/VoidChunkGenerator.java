@@ -18,9 +18,11 @@ import net.minecraft.world.biome.Biome;
 import net.minecraft.world.biome.BiomeKeys;
 import net.minecraft.world.biome.source.BiomeAccess;
 import net.minecraft.world.biome.source.FixedBiomeSource;
+import net.minecraft.world.biome.source.util.MultiNoiseUtil;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.gen.GenerationStep;
 import net.minecraft.world.gen.StructureAccessor;
+import net.minecraft.world.gen.chunk.Blender;
 import net.minecraft.world.gen.chunk.ChunkGenerator;
 import net.minecraft.world.gen.chunk.StructuresConfig;
 import net.minecraft.world.gen.chunk.VerticalBlockSample;
@@ -68,6 +70,18 @@ public class VoidChunkGenerator extends ChunkGenerator {
     }
 
     @Override
+    public MultiNoiseUtil.MultiNoiseSampler getMultiNoiseSampler() {
+        return (i, j, k) -> {
+            return MultiNoiseUtil.createNoiseValuePoint(0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F);
+        };
+    }
+
+    @Override
+    public void carve(ChunkRegion chunkRegion, long seed, BiomeAccess biomeAccess, StructureAccessor structureAccessor, Chunk chunk, GenerationStep.Carver generationStep) {
+
+    }
+
+    @Override
     public void setStructureStarts(DynamicRegistryManager registryManager, StructureAccessor accessor, Chunk chunk, StructureManager manager, long seed) {
     }
 
@@ -76,24 +90,31 @@ public class VoidChunkGenerator extends ChunkGenerator {
     }
 
     @Override
-    public CompletableFuture<Chunk> populateNoise(Executor executor, StructureAccessor accessor, Chunk chunk) {
+    public CompletableFuture<Chunk> populateNoise(Executor executor, Blender blender, StructureAccessor structureAccessor, Chunk chunk) {
         return CompletableFuture.completedFuture(chunk);
     }
 
     @Override
-    public void buildSurface(ChunkRegion region, Chunk chunk) {
+    public int getSeaLevel() {
+        return 0;
     }
 
     @Override
-    public void carve(long seed, BiomeAccess access, Chunk chunk, GenerationStep.Carver carver) {
+    public int getMinimumY() {
+        return 0;
     }
 
     @Override
-    public void generateFeatures(ChunkRegion region, StructureAccessor accessor) {
+    public void generateFeatures(StructureWorldAccess world, Chunk chunk, StructureAccessor structureAccessor) {
     }
 
     @Override
     public void populateEntities(ChunkRegion region) {
+    }
+
+    @Override
+    public int getWorldHeight() {
+        return 0;
     }
 
     @Override
@@ -110,6 +131,11 @@ public class VoidChunkGenerator extends ChunkGenerator {
     @Override
     public BlockPos locateStructure(ServerWorld world, StructureFeature<?> feature, BlockPos center, int radius, boolean skipExistingChunks) {
         return null;
+    }
+
+    @Override
+    public void buildSurface(ChunkRegion region, StructureAccessor structures, Chunk chunk) {
+
     }
 
     @Override

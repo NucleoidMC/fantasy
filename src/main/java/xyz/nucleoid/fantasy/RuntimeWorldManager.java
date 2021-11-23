@@ -53,7 +53,7 @@ final class RuntimeWorldManager {
             RemoveFromRegistry.remove(dimensionsRegistry, dimensionKey.getValue());
 
             LevelStorage.Session session = this.serverAccess.getSession();
-            File worldDirectory = session.getWorldDirectory(dimensionKey);
+            File worldDirectory = session.getWorldDirectory(dimensionKey).toFile();
             if (worldDirectory.exists()) {
                 try {
                     FileUtils.deleteDirectory(worldDirectory);

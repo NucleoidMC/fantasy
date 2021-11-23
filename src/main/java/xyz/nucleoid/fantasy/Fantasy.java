@@ -37,7 +37,7 @@ import java.util.Set;
 public final class Fantasy {
     public static final Logger LOGGER = LogManager.getLogger(Fantasy.class);
     public static final String ID = "fantasy";
-    public static final RegistryKey<DimensionType> DEFAULT_DIM_TYPE = RegistryKey.of(Registry.DIMENSION_TYPE_KEY,  new Identifier(Fantasy.ID, "default"));
+    public static final RegistryKey<DimensionType> DEFAULT_DIM_TYPE = RegistryKey.of(Registry.DIMENSION_TYPE_KEY, new Identifier(Fantasy.ID, "default"));
 
     private static Fantasy instance;
 
@@ -146,7 +146,7 @@ public final class Fantasy {
 
         try {
             LevelStorage.Session session = this.serverAccess.getSession();
-            FileUtils.forceDeleteOnExit(session.getWorldDirectory(worldKey));
+            FileUtils.forceDeleteOnExit(session.getWorldDirectory(worldKey).toFile());
         } catch (IOException ignored) {
         }
 
