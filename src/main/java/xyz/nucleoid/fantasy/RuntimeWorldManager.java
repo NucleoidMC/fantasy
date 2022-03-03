@@ -30,7 +30,10 @@ final class RuntimeWorldManager {
         DimensionOptions options = config.createDimensionOptions(this.server);
 
         SimpleRegistry<DimensionOptions> dimensionsRegistry = getDimensionsRegistry(this.server);
+        boolean isFrozen = ((RemoveFromRegistry<?>) dimensionsRegistry).isFrozen();
+        ((RemoveFromRegistry<?>) dimensionsRegistry).setFrozen(false);
         dimensionsRegistry.add(RegistryKey.of(Registry.DIMENSION_KEY, worldKey.getValue()), options, Lifecycle.stable());
+        ((RemoveFromRegistry<?>) dimensionsRegistry).setFrozen(isFrozen);
 
         RuntimeWorld world = new RuntimeWorld(this.server, worldKey, config, style);
 
@@ -70,6 +73,6 @@ final class RuntimeWorldManager {
 
     private static SimpleRegistry<DimensionOptions> getDimensionsRegistry(MinecraftServer server) {
         GeneratorOptions generatorOptions = server.getSaveProperties().getGeneratorOptions();
-        return generatorOptions.getDimensions();
+        return (SimpleRegistry<DimensionOptions>) generatorOptions.getDimensions();
     }
 }

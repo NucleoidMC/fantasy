@@ -1,6 +1,6 @@
 {
   "logical_height": 256,
-  "infiniburn": "minecraft:infiniburn_overworld",
+  "infiniburn": "#minecraft:infiniburn_overworld",
   "effects": "minecraft:overworld",
   "ambient_light": 0.0,
   "respawn_anchor_works": false,

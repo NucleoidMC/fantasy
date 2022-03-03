@@ -20,7 +20,7 @@ class RuntimeWorld extends ServerWorld {
                 server, Util.getMainWorkerExecutor(), ((MinecraftServerAccess) server).getSession(),
                 new RuntimeWorldProperties(server.getSaveProperties(), config),
                 registryKey,
-                config.createDimensionOptions(server).getDimensionType(),
+                config.createDimensionOptions(server).getDimensionTypeSupplier(),
                 VoidWorldProgressListener.INSTANCE,
                 config.getGenerator(),
                 false,
