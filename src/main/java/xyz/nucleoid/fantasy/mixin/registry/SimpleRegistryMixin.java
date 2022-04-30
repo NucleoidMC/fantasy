@@ -1,6 +1,5 @@
 package xyz.nucleoid.fantasy.mixin.registry;
 
-import com.google.common.collect.BiMap;
 import com.mojang.serialization.Lifecycle;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.ObjectList;
@@ -42,41 +41,46 @@ public abstract class SimpleRegistryMixin<T> implements RemoveFromRegistry<T> {
     @Shadow @Nullable private List<RegistryEntry.Reference<T>> cachedEntries;
 
     @Override
-    public boolean remove(T entry) {
+    public boolean fantasy$remove(T entry) {
         var registryEntry = this.valueToEntry.get(entry);
         int rawId = this.entryToRawId.removeInt(entry);
         if (rawId == -1) {
             return false;
         }
 
-        this.rawIdToEntry.set(rawId, null);
-        this.idToEntry.remove(registryEntry);
-        this.keyToEntry.remove(registryEntry);
-        this.entryToLifecycle.remove(entry);
-        this.valueToEntry.remove(entry);
-        if (this.cachedEntries != null) {
-            this.cachedEntries.remove(registryEntry);
-        }
-        if (this.unfrozenValueToEntry != null) {
-            this.unfrozenValueToEntry.remove(entry);
-        }
+        try {
+            this.rawIdToEntry.set(rawId, null);
+            this.idToEntry.remove(registryEntry.registryKey().getValue());
+            this.keyToEntry.remove(registryEntry.registryKey());
+            this.entryToLifecycle.remove(entry);
+            this.valueToEntry.remove(entry);
+            if (this.cachedEntries != null) {
+                this.cachedEntries.remove(registryEntry);
+            }
+            if (this.unfrozenValueToEntry != null) {
+                this.unfrozenValueToEntry.remove(entry);
+            }
 
-        return true;
+            return true;
+        } catch (Throwable e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 
     @Override
-    public boolean remove(Identifier key) {
+    public boolean fantasy$remove(Identifier key) {
         var entry = this.idToEntry.get(key);
-        return entry != null && entry.hasKeyAndValue() && this.remove(entry.value());
+        return entry != null && entry.hasKeyAndValue() && this.fantasy$remove(entry.value());
     }
 
     @Override
-    public void setFrozen(boolean value) {
+    public void fantasy$setFrozen(boolean value) {
         this.frozen = value;
     }
 
     @Override
-    public boolean isFrozen() {
+    public boolean fantasy$isFrozen() {
         return this.frozen;
     }
 }

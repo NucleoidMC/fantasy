@@ -29,11 +29,15 @@ final class RuntimeWorldManager {
     RuntimeWorld add(RegistryKey<World> worldKey, RuntimeWorldConfig config, RuntimeWorld.Style style) {
         DimensionOptions options = config.createDimensionOptions(this.server);
 
+        if (style == RuntimeWorld.Style.TEMPORARY) {
+            ((FantasyDimensionOptions) (Object) options).fantasy$setSave(false);
+        }
+
         SimpleRegistry<DimensionOptions> dimensionsRegistry = getDimensionsRegistry(this.server);
-        boolean isFrozen = ((RemoveFromRegistry<?>) dimensionsRegistry).isFrozen();
-        ((RemoveFromRegistry<?>) dimensionsRegistry).setFrozen(false);
+        boolean isFrozen = ((RemoveFromRegistry<?>) dimensionsRegistry).fantasy$isFrozen();
+        ((RemoveFromRegistry<?>) dimensionsRegistry).fantasy$setFrozen(false);
         dimensionsRegistry.add(RegistryKey.of(Registry.DIMENSION_KEY, worldKey.getValue()), options, Lifecycle.stable());
-        ((RemoveFromRegistry<?>) dimensionsRegistry).setFrozen(isFrozen);
+        ((RemoveFromRegistry<?>) dimensionsRegistry).fantasy$setFrozen(isFrozen);
 
         RuntimeWorld world = new RuntimeWorld(this.server, worldKey, config, style);
 

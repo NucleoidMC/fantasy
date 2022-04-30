@@ -1,5 +1,5 @@
 plugins {
-  id 'fabric-loom' version '0.10-SNAPSHOT'
+  id 'fabric-loom' version '0.11-SNAPSHOT'
   id 'maven-publish'
 }
 
@@ -10,8 +10,15 @@ archivesBaseName = project.archives_base_name
 version = project.mod_version + "+" + project.minecraft_version
 group = project.maven_group
 
-minecraft {
-  accessWidener = file("src/main/resources/fantasy.accesswidener")
+loom {
+  accessWidenerPath = file("src/main/resources/fantasy.accesswidener")
+}
+
+sourceSets {
+  testmod {
+    compileClasspath += main.compileClasspath
+    runtimeClasspath += main.runtimeClasspath
+  }
 }
 
 repositories {
@@ -24,6 +31,8 @@ dependencies {
   modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
 
   modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+
+  testmodImplementation sourceSets.main.output
 }
 
 processResources {

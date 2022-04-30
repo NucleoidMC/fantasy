@@ -12,6 +12,7 @@
   },
   "mixins": ["fantasy.mixins.json"],
   "accessWidener": "fantasy.accesswidener",
+  "icon": "icon.png",
   "custom": {
     "modmenu": {
       "badges": ["library"]
@@ -19,8 +20,8 @@
   },
   "depends": {
     "fabricloader": ">=0.11.3",
-    "fabric": "*",
     "minecraft": "1.18.x",
-    "java": ">=16"
+    "fabric-lifecycle-events-v1": "*",
+    "java": ">=17"
   }
 }
