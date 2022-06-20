@@ -6,6 +6,8 @@
   "respawn_anchor_works": false,
   "has_raids": true,
   "min_y": 0,
+  "monster_spawn_block_light_limit": 0,
+  "monster_spawn_light_level": 0,
   "height": 256,
   "natural": true,
   "coordinate_scale": 1.0,

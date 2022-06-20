@@ -1,5 +1,5 @@
 plugins {
-  id 'fabric-loom' version '0.11-SNAPSHOT'
+  id 'fabric-loom' version '0.12-SNAPSHOT'
   id 'maven-publish'
 }
 
@@ -10,9 +10,6 @@ archivesBaseName = project.archives_base_name
 version = project.mod_version + "+" + project.minecraft_version
 group = project.maven_group
 
-loom {
-  accessWidenerPath = file("src/main/resources/fantasy.accesswidener")
-}
 
 sourceSets {
   testmod {
@@ -21,8 +18,26 @@ sourceSets {
   }
 }
 
+loom {
+  runs {
+    testmodClient {
+      client()
+      name = "Testmod Client"
+      source sourceSets.testmod
+    }
+    testmodServer {
+      server()
+      name = "Testmod Server"
+      source sourceSets.testmod
+    }
+  }
+
+  accessWidenerPath = file("src/main/resources/fantasy.accesswidener")
+}
+
 repositories {
   maven { url = "https://maven.gegy.dev/" }
+  maven { url = "https://maven.nucleoid.xyz/" }
 }
 
 dependencies {
@@ -31,6 +46,8 @@ dependencies {
   modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
 
   modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+
+  modLocalRuntime "eu.pb4:polymer-reg-sync-manipulator:0.0.1+1.19"
 
   testmodImplementation sourceSets.main.output
 }
