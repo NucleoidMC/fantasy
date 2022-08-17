@@ -25,7 +25,7 @@ class RuntimeWorld extends ServerWorld {
                 false,
                 BiomeAccess.hashSeed(config.getSeed()),
                 ImmutableList.of(),
-                false
+                config.shouldTickTime()
         );
         this.style = style;
     }

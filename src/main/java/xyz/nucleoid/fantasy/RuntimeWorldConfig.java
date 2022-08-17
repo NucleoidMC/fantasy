@@ -24,6 +24,7 @@ public final class RuntimeWorldConfig {
     private RegistryKey<DimensionType> dimensionTypeKey = Fantasy.DEFAULT_DIM_TYPE;
     private RegistryEntry<DimensionType> dimensionType;
     private ChunkGenerator generator = null;
+    private boolean shouldTickTime = false;
     private long timeOfDay = 6000;
     private Difficulty difficulty = Difficulty.NORMAL;
     private final GameRuleStore gameRules = new GameRuleStore();
@@ -60,6 +61,11 @@ public final class RuntimeWorldConfig {
 
     public RuntimeWorldConfig setGenerator(ChunkGenerator generator) {
         this.generator = generator;
+        return this;
+    }
+	
+    public RuntimeWorldConfig setShouldTickTime(boolean shouldTickTime) {
+        this.shouldTickTime = shouldTickTime;
         return this;
     }
 
@@ -133,6 +139,10 @@ public final class RuntimeWorldConfig {
     @Nullable
     public ChunkGenerator getGenerator() {
         return this.generator;
+    }
+	
+    public boolean shouldTickTime() {
+        return this.shouldTickTime;
     }
 
     public long getTimeOfDay() {
