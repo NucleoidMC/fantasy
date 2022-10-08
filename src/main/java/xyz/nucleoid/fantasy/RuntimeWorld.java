@@ -15,6 +15,8 @@ import xyz.nucleoid.fantasy.util.VoidWorldProgressListener;
 class RuntimeWorld extends ServerWorld {
     final Style style;
 
+    final long seed;
+
     RuntimeWorld(MinecraftServer server, RegistryKey<World> registryKey, RuntimeWorldConfig config, Style style) {
         super(
                 server, Util.getMainWorkerExecutor(), ((MinecraftServerAccess) server).getSession(),
@@ -27,6 +29,7 @@ class RuntimeWorld extends ServerWorld {
                 ImmutableList.of(),
                 config.shouldTickTime()
         );
+        this.seed = config.getSeed();
         this.style = style;
     }
 
@@ -35,6 +38,11 @@ class RuntimeWorld extends ServerWorld {
         if (this.style == Style.PERSISTENT || !flush) {
             super.save(progressListener, flush, enabled);
         }
+    }
+
+    @Override
+    public long getSeed() {
+        return this.seed;
     }
 
     public enum Style {
