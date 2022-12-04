@@ -3,10 +3,10 @@ package xyz.nucleoid.fantasy.mixin.registry;
 import com.mojang.serialization.Lifecycle;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.ObjectList;
+import net.minecraft.registry.RegistryKey;
+import net.minecraft.registry.SimpleRegistry;
+import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.registry.RegistryEntry;
-import net.minecraft.util.registry.RegistryKey;
-import net.minecraft.util.registry.SimpleRegistry;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -21,8 +21,6 @@ import java.util.Optional;
 public abstract class SimpleRegistryMixin<T> implements RemoveFromRegistry<T> {
 
     @Shadow @Final private Map<T, RegistryEntry.Reference<T>> valueToEntry;
-
-    @Shadow @Nullable private Map<T, RegistryEntry.Reference<T>> unfrozenValueToEntry;
 
     @Shadow @Final private Map<Identifier, RegistryEntry.Reference<T>> idToEntry;
 
@@ -56,9 +54,6 @@ public abstract class SimpleRegistryMixin<T> implements RemoveFromRegistry<T> {
             this.valueToEntry.remove(entry);
             if (this.cachedEntries != null) {
                 this.cachedEntries.remove(registryEntry);
-            }
-            if (this.unfrozenValueToEntry != null) {
-                this.unfrozenValueToEntry.remove(entry);
             }
 
             return true;

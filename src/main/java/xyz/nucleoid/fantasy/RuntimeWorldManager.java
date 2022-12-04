@@ -2,14 +2,14 @@ package xyz.nucleoid.fantasy;
 
 import com.mojang.serialization.Lifecycle;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerWorldEvents;
+import net.minecraft.registry.DynamicRegistryManager;
+import net.minecraft.registry.RegistryKey;
+import net.minecraft.registry.RegistryKeys;
+import net.minecraft.registry.SimpleRegistry;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.registry.Registry;
-import net.minecraft.util.registry.RegistryKey;
-import net.minecraft.util.registry.SimpleRegistry;
 import net.minecraft.world.World;
 import net.minecraft.world.dimension.DimensionOptions;
-import net.minecraft.world.gen.GeneratorOptions;
 import net.minecraft.world.level.storage.LevelStorage;
 import org.apache.commons.io.FileUtils;
 import xyz.nucleoid.fantasy.mixin.MinecraftServerAccess;
@@ -36,7 +36,7 @@ final class RuntimeWorldManager {
         SimpleRegistry<DimensionOptions> dimensionsRegistry = getDimensionsRegistry(this.server);
         boolean isFrozen = ((RemoveFromRegistry<?>) dimensionsRegistry).fantasy$isFrozen();
         ((RemoveFromRegistry<?>) dimensionsRegistry).fantasy$setFrozen(false);
-        dimensionsRegistry.add(RegistryKey.of(Registry.DIMENSION_KEY, worldKey.getValue()), options, Lifecycle.stable());
+        dimensionsRegistry.add(RegistryKey.of(RegistryKeys.DIMENSION, worldKey.getValue()), options, Lifecycle.stable());
         ((RemoveFromRegistry<?>) dimensionsRegistry).fantasy$setFrozen(isFrozen);
 
         RuntimeWorld world = new RuntimeWorld(this.server, worldKey, config, style);
@@ -76,7 +76,7 @@ final class RuntimeWorldManager {
     }
 
     private static SimpleRegistry<DimensionOptions> getDimensionsRegistry(MinecraftServer server) {
-        GeneratorOptions generatorOptions = server.getSaveProperties().getGeneratorOptions();
-        return (SimpleRegistry<DimensionOptions>) generatorOptions.getDimensions();
+        DynamicRegistryManager registryManager = server.getCombinedDynamicRegistries().getCombinedRegistryManager();
+        return (SimpleRegistry<DimensionOptions>) registryManager.get(RegistryKeys.DIMENSION);
     }
 }

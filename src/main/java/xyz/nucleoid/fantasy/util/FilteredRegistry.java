@@ -2,14 +2,14 @@ package xyz.nucleoid.fantasy.util;
 
 import com.google.common.collect.Iterators;
 import com.mojang.datafixers.util.Pair;
-import com.mojang.serialization.DataResult;
 import com.mojang.serialization.Lifecycle;
-import net.minecraft.tag.TagKey;
+import net.minecraft.registry.Registry;
+import net.minecraft.registry.RegistryKey;
+import net.minecraft.registry.SimpleRegistry;
+import net.minecraft.registry.entry.RegistryEntry;
+import net.minecraft.registry.entry.RegistryEntryList;
+import net.minecraft.registry.tag.TagKey;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.registry.Registry;
-import net.minecraft.util.registry.RegistryEntry;
-import net.minecraft.util.registry.RegistryEntryList;
-import net.minecraft.util.registry.RegistryKey;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -17,7 +17,7 @@ import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
-public class FilteredRegistry<T> extends Registry<T> {
+public class FilteredRegistry<T> extends SimpleRegistry<T> {
     private final Registry<T> source;
     private final Predicate<T> check;
 
@@ -102,7 +102,7 @@ public class FilteredRegistry<T> extends Registry<T> {
     }
 
     @Override
-    public Optional<RegistryEntry<T>> getRandom(net.minecraft.util.math.random.Random random) {
+    public Optional<RegistryEntry.Reference<T>> getRandom(net.minecraft.util.math.random.Random random) {
         return Optional.empty();
     }
 
@@ -122,27 +122,17 @@ public class FilteredRegistry<T> extends Registry<T> {
     }
 
     @Override
-    public RegistryEntry<T> getOrCreateEntry(RegistryKey<T> key) {
-        return this.source.getOrCreateEntry(key);
-    }
-
-    @Override
-    public DataResult<RegistryEntry<T>> getOrCreateEntryDataResult(RegistryKey<T> key) {
-        return null;
-    }
-
-    @Override
     public RegistryEntry.Reference<T> createEntry(T value) {
         return null;
     }
 
     @Override
-    public Optional<RegistryEntry<T>> getEntry(int rawId) {
+    public Optional<RegistryEntry.Reference<T>> getEntry(int rawId) {
         return this.source.getEntry(rawId);
     }
 
     @Override
-    public Optional<RegistryEntry<T>> getEntry(RegistryKey<T> key) {
+    public Optional<RegistryEntry.Reference<T>> getEntry(RegistryKey<T> key) {
         return this.source.getEntry(key);
     }
 
@@ -169,11 +159,6 @@ public class FilteredRegistry<T> extends Registry<T> {
     @Override
     public Stream<TagKey<T>> streamTags() {
         return null;
-    }
-
-    @Override
-    public boolean containsTag(TagKey<T> tag) {
-        return false;
     }
 
     @Override
