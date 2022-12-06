@@ -47,7 +47,7 @@ dependencies {
 
   modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 
-  modLocalRuntime "eu.pb4:polymer-reg-sync-manipulator:0.0.1+1.19"
+  modLocalRuntime "eu.pb4:polymer-reg-sync-manipulator:0.3.0-rc.1+1.19.3-rc1"
 
   testmodImplementation sourceSets.main.output
 }
