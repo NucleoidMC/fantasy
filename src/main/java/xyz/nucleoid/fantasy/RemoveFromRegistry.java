@@ -1,7 +1,7 @@
 package xyz.nucleoid.fantasy;
 
+import net.minecraft.registry.SimpleRegistry;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.registry.SimpleRegistry;
 import org.jetbrains.annotations.ApiStatus;
 
 @ApiStatus.Internal

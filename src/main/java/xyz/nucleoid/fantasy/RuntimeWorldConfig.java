@@ -1,10 +1,10 @@
 package xyz.nucleoid.fantasy;
 
 import com.google.common.base.Preconditions;
+import net.minecraft.registry.RegistryKey;
+import net.minecraft.registry.RegistryKeys;
+import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.util.registry.Registry;
-import net.minecraft.util.registry.RegistryEntry;
-import net.minecraft.util.registry.RegistryKey;
 import net.minecraft.world.Difficulty;
 import net.minecraft.world.GameRules;
 import net.minecraft.world.dimension.DimensionOptions;
@@ -130,7 +130,7 @@ public final class RuntimeWorldConfig {
     private RegistryEntry<DimensionType> resolveDimensionType(MinecraftServer server) {
         var dimensionType = this.dimensionType;
         if (dimensionType == null) {
-            dimensionType = server.getRegistryManager().get(Registry.DIMENSION_TYPE_KEY).getEntry(this.dimensionTypeKey).orElse(null);
+            dimensionType = server.getRegistryManager().get(RegistryKeys.DIMENSION_TYPE).getEntry(this.dimensionTypeKey).orElse(null);
             Preconditions.checkNotNull(dimensionType, "invalid dimension type " + this.dimensionTypeKey);
         }
         return dimensionType;

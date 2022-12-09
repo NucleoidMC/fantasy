@@ -1,7 +1,7 @@
 package xyz.nucleoid.fantasy;
 
+import net.minecraft.registry.RegistryKey;
 import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.registry.RegistryKey;
 import net.minecraft.world.World;
 
 public final class RuntimeWorldHandle {

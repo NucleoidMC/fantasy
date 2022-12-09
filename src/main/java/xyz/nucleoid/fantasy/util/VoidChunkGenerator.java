@@ -2,18 +2,18 @@ package xyz.nucleoid.fantasy.util;
 
 import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.Codec;
-import com.mojang.serialization.Lifecycle;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.SpawnGroup;
+import net.minecraft.registry.*;
+import net.minecraft.registry.entry.RegistryEntry;
+import net.minecraft.registry.entry.RegistryEntryList;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.structure.StructureSet;
 import net.minecraft.structure.StructureTemplateManager;
 import net.minecraft.util.collection.Pool;
 import net.minecraft.util.dynamic.CodecHolder;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.ChunkPos;
-import net.minecraft.util.registry.*;
 import net.minecraft.world.ChunkRegion;
 import net.minecraft.world.HeightLimitView;
 import net.minecraft.world.Heightmap;
@@ -30,7 +30,7 @@ import net.minecraft.world.gen.StructureAccessor;
 import net.minecraft.world.gen.chunk.Blender;
 import net.minecraft.world.gen.chunk.ChunkGenerator;
 import net.minecraft.world.gen.chunk.VerticalBlockSample;
-import net.minecraft.world.gen.chunk.placement.ConcentricRingsStructurePlacement;
+import net.minecraft.world.gen.chunk.placement.StructurePlacementCalculator;
 import net.minecraft.world.gen.densityfunction.DensityFunction;
 import net.minecraft.world.gen.noise.NoiseConfig;
 import net.minecraft.world.gen.structure.Structure;
@@ -38,10 +38,10 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 public class VoidChunkGenerator extends ChunkGenerator {
     public static final Codec<VoidChunkGenerator> CODEC = RecordCodecBuilder.create(instance -> {
@@ -54,8 +54,6 @@ public class VoidChunkGenerator extends ChunkGenerator {
 
     private final RegistryEntry<Biome> biome;
 
-    private static final Registry<StructureSet> EMPTY_STRUCTURE_REGISTRY = new SimpleRegistry<>(Registry.STRUCTURE_SET_KEY, Lifecycle.stable(), (x) -> null).freeze();
-
     public static final DensityFunction ZERO_DENSITY_FUNCTION = new DensityFunction() {
         @Override
         public double sample(NoisePos pos) {
@@ -63,7 +61,7 @@ public class VoidChunkGenerator extends ChunkGenerator {
         }
 
         @Override
-        public void method_40470(double[] ds, class_6911 arg) { }
+        public void applyEach(double[] ds, EachApplier arg) { }
 
         @Override
         public DensityFunction apply(DensityFunctionVisitor visitor) {
@@ -81,7 +79,7 @@ public class VoidChunkGenerator extends ChunkGenerator {
         }
 
         @Override
-        public CodecHolder<? extends DensityFunction> getCodec() {
+        public CodecHolder<? extends DensityFunction> getCodecHolder() {
             return CodecHolder.of(Codec.unit(this));
         }
     };
@@ -89,7 +87,7 @@ public class VoidChunkGenerator extends ChunkGenerator {
     public static final MultiNoiseUtil.MultiNoiseSampler EMPTY_SAMPLER = new MultiNoiseUtil.MultiNoiseSampler(ZERO_DENSITY_FUNCTION, ZERO_DENSITY_FUNCTION, ZERO_DENSITY_FUNCTION, ZERO_DENSITY_FUNCTION, ZERO_DENSITY_FUNCTION, ZERO_DENSITY_FUNCTION, Collections.emptyList());
 
     public VoidChunkGenerator(RegistryEntry<Biome> biome) {
-        super(EMPTY_STRUCTURE_REGISTRY, Optional.empty(), new FixedBiomeSource(biome));
+        super(new FixedBiomeSource(biome));
         this.biome = biome;
     }
 
@@ -175,23 +173,17 @@ public class VoidChunkGenerator extends ChunkGenerator {
     }
 
     @Override
-    public boolean shouldStructureGenerateInRange(RegistryEntry<StructureSet> structureSet, NoiseConfig noiseConfig, long seed, int chunkX, int chunkZ, int chunkRange) {
-        return false;
-    }
-
-    @Override
     public Pool<SpawnSettings.SpawnEntry> getEntitySpawnList(RegistryEntry<Biome> biome, StructureAccessor accessor, SpawnGroup group, BlockPos pos) {
         return Pool.empty();
     }
 
     @Override
-    public void setStructureStarts(DynamicRegistryManager registryManager, NoiseConfig noiseConfig, StructureAccessor structureAccessor, Chunk chunk, StructureTemplateManager structureTemplateManager, long seed) {
+    public void setStructureStarts(DynamicRegistryManager registryManager, StructurePlacementCalculator placementCalculator, StructureAccessor structureAccessor, Chunk chunk, StructureTemplateManager structureTemplateManager) {
 
     }
 
-    @Nullable
     @Override
-    public List<ChunkPos> getConcentricRingsStartChunks(ConcentricRingsStructurePlacement structurePlacement, NoiseConfig noiseConfig) {
-        return null;
+    public StructurePlacementCalculator createStructurePlacementCalculator(RegistryWrapper<StructureSet> structureSetRegistry, NoiseConfig noiseConfig, long seed) {
+        return StructurePlacementCalculator.create(noiseConfig, seed, biomeSource, Stream.empty());
     }
 }

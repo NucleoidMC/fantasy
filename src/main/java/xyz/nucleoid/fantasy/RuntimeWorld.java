@@ -1,11 +1,11 @@
 package xyz.nucleoid.fantasy;
 
 import com.google.common.collect.ImmutableList;
+import net.minecraft.registry.RegistryKey;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.ProgressListener;
 import net.minecraft.util.Util;
-import net.minecraft.util.registry.RegistryKey;
 import net.minecraft.world.World;
 import net.minecraft.world.biome.source.BiomeAccess;
 import org.jetbrains.annotations.Nullable;

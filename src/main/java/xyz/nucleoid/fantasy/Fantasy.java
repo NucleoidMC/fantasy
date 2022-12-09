@@ -4,13 +4,13 @@ import com.google.common.base.Preconditions;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
+import net.minecraft.registry.RegistryKey;
+import net.minecraft.registry.RegistryKeys;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.registry.Registry;
-import net.minecraft.util.registry.RegistryKey;
 import net.minecraft.world.World;
 import net.minecraft.world.dimension.DimensionType;
 import net.minecraft.world.level.storage.LevelStorage;
@@ -37,7 +37,7 @@ import java.util.Set;
 public final class Fantasy {
     public static final Logger LOGGER = LogManager.getLogger(Fantasy.class);
     public static final String ID = "fantasy";
-    public static final RegistryKey<DimensionType> DEFAULT_DIM_TYPE = RegistryKey.of(Registry.DIMENSION_TYPE_KEY, new Identifier(Fantasy.ID, "default"));
+    public static final RegistryKey<DimensionType> DEFAULT_DIM_TYPE = RegistryKey.of(RegistryKeys.DIMENSION_TYPE, new Identifier(Fantasy.ID, "default"));
 
     private static Fantasy instance;
 
@@ -124,7 +124,7 @@ public final class Fantasy {
      * @return a future providing the created world
      */
     public RuntimeWorldHandle getOrOpenPersistentWorld(Identifier key, RuntimeWorldConfig config) {
-        RegistryKey<World> worldKey = RegistryKey.of(Registry.WORLD_KEY, key);
+        RegistryKey<World> worldKey = RegistryKey.of(RegistryKeys.WORLD, key);
 
         ServerWorld world = this.server.getWorld(worldKey);
         if (world == null) {
@@ -137,12 +137,12 @@ public final class Fantasy {
     }
 
     private RuntimeWorld addPersistentWorld(Identifier key, RuntimeWorldConfig config) {
-        RegistryKey<World> worldKey = RegistryKey.of(Registry.WORLD_KEY, key);
+        RegistryKey<World> worldKey = RegistryKey.of(RegistryKeys.WORLD, key);
         return this.worldManager.add(worldKey, config, RuntimeWorld.Style.PERSISTENT);
     }
 
     private RuntimeWorld addTemporaryWorld(RuntimeWorldConfig config) {
-        RegistryKey<World> worldKey = RegistryKey.of(Registry.WORLD_KEY, generateTemporaryWorldKey());
+        RegistryKey<World> worldKey = RegistryKey.of(RegistryKeys.WORLD, generateTemporaryWorldKey());
 
         try {
             LevelStorage.Session session = this.serverAccess.getSession();
