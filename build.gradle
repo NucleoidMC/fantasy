@@ -1,5 +1,5 @@
 plugins {
-  id 'fabric-loom' version '0.12-SNAPSHOT'
+  id 'fabric-loom' version '1.0-SNAPSHOT'
   id 'maven-publish'
 }
 
@@ -76,12 +76,7 @@ jar {
 publishing {
   publications {
     mavenJava(MavenPublication) {
-      artifact(remapJar) {
-        builtBy remapJar
-      }
-      artifact(sourcesJar) {
-        builtBy remapSourcesJar
-      }
+      from components.java
     }
   }
 
