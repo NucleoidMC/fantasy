@@ -50,6 +50,7 @@ public final class Fantasy {
     private final RuntimeWorldManager worldManager;
 
     private final Set<ServerWorld> deletionQueue = new ReferenceOpenHashSet<>();
+    private final Set<ServerWorld> unloadQueue = new ReferenceOpenHashSet<>();
 
     static {
         ServerTickEvents.START_SERVER_TICK.register(server -> {
@@ -90,6 +91,11 @@ public final class Fantasy {
         Set<ServerWorld> deletionQueue = this.deletionQueue;
         if (!deletionQueue.isEmpty()) {
             deletionQueue.removeIf(this::tickDeleteWorld);
+        }
+
+        Set<ServerWorld> unloadQueue = this.unloadQueue;
+        if (!unloadQueue.isEmpty()) {
+            unloadQueue.removeIf(this::tickUnloadWorld);
         }
     }
 
@@ -193,6 +199,12 @@ public final class Fantasy {
         return this.worldManager.add(worldKey, config, RuntimeWorld.Style.TEMPORARY);
     }
 
+    void enqueueWorldUnload(ServerWorld world) {
+        this.server.submit(() -> {
+            this.unloadQueue.add(world);
+        });
+    }
+
     void enqueueWorldDeletion(ServerWorld world) {
         this.server.submit(() -> {
             this.deletionQueue.add(world);
@@ -202,6 +214,16 @@ public final class Fantasy {
     private boolean tickDeleteWorld(ServerWorld world) {
         if (this.isWorldUnloaded(world)) {
             this.worldManager.delete(world);
+            return true;
+        } else {
+            this.kickPlayers(world);
+            return false;
+        }
+    }
+
+    private boolean tickUnloadWorld(ServerWorld world) {
+        if (this.isWorldUnloaded(world)) {
+            this.worldManager.unload(world);
             return true;
         } else {
             this.kickPlayers(world);
@@ -239,8 +261,7 @@ public final class Fantasy {
     private List<RuntimeWorld> collectTemporaryWorlds() {
         List<RuntimeWorld> temporaryWorlds = new ArrayList<>();
         for (ServerWorld world : this.server.getWorlds()) {
-            if (world instanceof RuntimeWorld) {
-                RuntimeWorld runtimeWorld = (RuntimeWorld) world;
+            if (world instanceof RuntimeWorld runtimeWorld) {
                 if (runtimeWorld.style == RuntimeWorld.Style.TEMPORARY) {
                     temporaryWorlds.add(runtimeWorld);
                 }

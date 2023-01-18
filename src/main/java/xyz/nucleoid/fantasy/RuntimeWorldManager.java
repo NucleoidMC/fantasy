@@ -61,14 +61,7 @@ final class RuntimeWorldManager {
     }
 
     void delete(ServerWorld world) {
-        RegistryKey<World> dimensionKey = world.getRegistryKey();
-
-        if (this.serverAccess.getWorlds().remove(dimensionKey, world)) {
-            ServerWorldEvents.UNLOAD.invoker().onWorldUnload(this.server, world);
-
-            SimpleRegistry<DimensionOptions> dimensionsRegistry = getDimensionsRegistry(this.server);
-            RemoveFromRegistry.remove(dimensionsRegistry, dimensionKey.getValue());
-
+        if (this.unload(world)) {
             File worldDirectory = new File(world.getChunkManager().threadedAnvilChunkStorage.getSaveDir());
             if (worldDirectory.exists()) {
                 try {
@@ -82,6 +75,20 @@ final class RuntimeWorldManager {
                 }
             }
         }
+    }
+
+    boolean unload(ServerWorld world) {
+        RegistryKey<World> dimensionKey = world.getRegistryKey();
+
+        if (this.serverAccess.getWorlds().remove(dimensionKey, world)) {
+            ServerWorldEvents.UNLOAD.invoker().onWorldUnload(this.server, world);
+
+            SimpleRegistry<DimensionOptions> dimensionsRegistry = getDimensionsRegistry(this.server);
+            RemoveFromRegistry.remove(dimensionsRegistry, dimensionKey.getValue());
+            return true;
+        }
+
+        return false;
     }
 
     private static SimpleRegistry<DimensionOptions> getDimensionsRegistry(MinecraftServer server) {
