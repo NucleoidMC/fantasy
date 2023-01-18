@@ -1,6 +1,7 @@
 package xyz.nucleoid.fantasy;
 
 import com.google.common.base.Preconditions;
+import com.mojang.serialization.Codec;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
@@ -13,6 +14,7 @@ import net.minecraft.util.registry.Registry;
 import net.minecraft.util.registry.RegistryKey;
 import net.minecraft.world.World;
 import net.minecraft.world.dimension.DimensionType;
+import net.minecraft.world.gen.chunk.ChunkGenerator;
 import net.minecraft.world.level.storage.LevelStorage;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -38,6 +40,7 @@ public final class Fantasy {
     public static final Logger LOGGER = LogManager.getLogger(Fantasy.class);
     public static final String ID = "fantasy";
     public static final RegistryKey<DimensionType> DEFAULT_DIM_TYPE = RegistryKey.of(Registry.DIMENSION_TYPE_KEY, new Identifier(Fantasy.ID, "default"));
+    public static final RegistryKey<Codec<? extends ChunkGenerator>> VOID_CHUNK_GENERATOR = RegistryKey.of(Registry.CHUNK_GENERATOR_KEY, new Identifier(Fantasy.ID, "void"));
 
     private static Fantasy instance;
 
@@ -136,9 +139,46 @@ public final class Fantasy {
         return new RuntimeWorldHandle(this, world);
     }
 
+    /**
+     * Gets or creates a new persistent world with the given identifier and {@link RuntimeWorldConfig}. These worlds
+     * will be saved to disk and can be restored after a server restart.
+     * <p>
+     * If a world with this identifier exists already, it will be returned and no new world will be constructed.
+     * <p>
+     * <b>Note!</b> These persistent worlds will not be automatically restored! This function
+     * must be called after a server restart with the relevant identifier and configuration such that it can be loaded.
+     * <p>
+     * The created world is returned asynchronously through a {@link RuntimeWorldHandle}.
+     * This handle can be used to acquire the {@link ServerWorld} object through {@link RuntimeWorldHandle#asWorld()},
+     * as well as to delete the world through {@link RuntimeWorldHandle#delete()}.
+     *
+     * @param key the unique identifier for this dimension
+     * @param config the config with which to construct this persistent world
+     * @param storageSession the storage session to save the world to
+     * @return a future providing the created world
+     */
+    public RuntimeWorldHandle getOrOpenPersistentWorld(Identifier key, RuntimeWorldConfig config,
+                                                       LevelStorage.Session storageSession) {
+        RegistryKey<World> worldKey = RegistryKey.of(Registry.WORLD_KEY, key);
+
+        ServerWorld world = this.server.getWorld(worldKey);
+        if (world == null) {
+            world = this.addPersistentWorld(key, config, storageSession);
+        } else {
+            this.deletionQueue.remove(world);
+        }
+
+        return new RuntimeWorldHandle(this, world);
+    }
+
     private RuntimeWorld addPersistentWorld(Identifier key, RuntimeWorldConfig config) {
         RegistryKey<World> worldKey = RegistryKey.of(Registry.WORLD_KEY, key);
         return this.worldManager.add(worldKey, config, RuntimeWorld.Style.PERSISTENT);
+    }
+
+    private RuntimeWorld addPersistentWorld(Identifier key, RuntimeWorldConfig config, LevelStorage.Session storageSession) {
+        RegistryKey<World> worldKey = RegistryKey.of(Registry.WORLD_KEY, key);
+        return this.worldManager.add(worldKey, config, storageSession);
     }
 
     private RuntimeWorld addTemporaryWorld(RuntimeWorldConfig config) {

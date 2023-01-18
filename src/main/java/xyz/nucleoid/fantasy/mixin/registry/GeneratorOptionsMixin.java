@@ -16,4 +16,5 @@ public class GeneratorOptionsMixin {
     @ModifyArg(method = "method_28606", at = @At(value = "INVOKE", target = "Lcom/mojang/serialization/MapCodec;forGetter(Ljava/util/function/Function;)Lcom/mojang/serialization/codecs/RecordCodecBuilder;", ordinal = 3))
     private static Function<GeneratorOptions, Registry<DimensionOptions>> fantasy$wrapRegistry(Function<GeneratorOptions, Registry<DimensionOptions>> getter) {
         return (e) -> new FilteredRegistry<>(e.getDimensions(), FantasyDimensionOptions.SAVE_PREDICATE);
-    }}
+    }
+}

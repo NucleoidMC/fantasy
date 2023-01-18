@@ -26,7 +26,8 @@ final class RuntimeWorldManager {
         this.serverAccess = (MinecraftServerAccess) server;
     }
 
-    RuntimeWorld add(RegistryKey<World> worldKey, RuntimeWorldConfig config, RuntimeWorld.Style style) {
+    private RuntimeWorld add(RegistryKey<World> worldKey, RuntimeWorldConfig config,
+                             LevelStorage.Session storageSession, RuntimeWorld.Style style) {
         DimensionOptions options = config.createDimensionOptions(this.server);
 
         if (style == RuntimeWorld.Style.TEMPORARY) {
@@ -39,7 +40,7 @@ final class RuntimeWorldManager {
         dimensionsRegistry.add(RegistryKey.of(Registry.DIMENSION_KEY, worldKey.getValue()), options, Lifecycle.stable());
         ((RemoveFromRegistry<?>) dimensionsRegistry).fantasy$setFrozen(isFrozen);
 
-        RuntimeWorld world = new RuntimeWorld(this.server, worldKey, config, style);
+        RuntimeWorld world = new RuntimeWorld(this.server, worldKey, config, storageSession, style);
 
         this.serverAccess.getWorlds().put(world.getRegistryKey(), world);
         ServerWorldEvents.LOAD.invoker().onWorldLoad(this.server, world);
@@ -48,6 +49,15 @@ final class RuntimeWorldManager {
         world.tick(() -> true);
 
         return world;
+    }
+
+    RuntimeWorld add(RegistryKey<World> worldKey, RuntimeWorldConfig config,
+                     LevelStorage.Session storageSession) {
+        return this.add(worldKey, config, storageSession, RuntimeWorld.Style.PERSISTENT);
+    }
+
+    RuntimeWorld add(RegistryKey<World> worldKey, RuntimeWorldConfig config, RuntimeWorld.Style style) {
+        return this.add(worldKey, config, this.serverAccess.getSession(), style);
     }
 
     void delete(ServerWorld world) {
@@ -59,8 +69,7 @@ final class RuntimeWorldManager {
             SimpleRegistry<DimensionOptions> dimensionsRegistry = getDimensionsRegistry(this.server);
             RemoveFromRegistry.remove(dimensionsRegistry, dimensionKey.getValue());
 
-            LevelStorage.Session session = this.serverAccess.getSession();
-            File worldDirectory = session.getWorldDirectory(dimensionKey).toFile();
+            File worldDirectory = new File(world.getChunkManager().threadedAnvilChunkStorage.getSaveDir());
             if (worldDirectory.exists()) {
                 try {
                     FileUtils.deleteDirectory(worldDirectory);

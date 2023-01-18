@@ -8,16 +8,17 @@ import net.minecraft.util.Util;
 import net.minecraft.util.registry.RegistryKey;
 import net.minecraft.world.World;
 import net.minecraft.world.biome.source.BiomeAccess;
+import net.minecraft.world.level.storage.LevelStorage;
 import org.jetbrains.annotations.Nullable;
-import xyz.nucleoid.fantasy.mixin.MinecraftServerAccess;
 import xyz.nucleoid.fantasy.util.VoidWorldProgressListener;
 
 class RuntimeWorld extends ServerWorld {
     final Style style;
 
-    RuntimeWorld(MinecraftServer server, RegistryKey<World> registryKey, RuntimeWorldConfig config, Style style) {
+    RuntimeWorld(MinecraftServer server, RegistryKey<World> registryKey, RuntimeWorldConfig config,
+                 LevelStorage.Session storageSession, Style style) {
         super(
-                server, Util.getMainWorkerExecutor(), ((MinecraftServerAccess) server).getSession(),
+                server, Util.getMainWorkerExecutor(), storageSession,
                 new RuntimeWorldProperties(server.getSaveProperties(), config),
                 registryKey,
                 config.createDimensionOptions(server),
