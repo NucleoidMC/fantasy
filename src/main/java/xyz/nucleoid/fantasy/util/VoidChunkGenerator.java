@@ -61,7 +61,7 @@ public class VoidChunkGenerator extends ChunkGenerator {
         }
 
         @Override
-        public void applyEach(double[] ds, EachApplier arg) { }
+        public void fill(double[] ds, EachApplier arg) { }
 
         @Override
         public DensityFunction apply(DensityFunctionVisitor visitor) {
