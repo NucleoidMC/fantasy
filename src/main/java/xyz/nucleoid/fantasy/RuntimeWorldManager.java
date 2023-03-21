@@ -36,7 +36,11 @@ final class RuntimeWorldManager {
         SimpleRegistry<DimensionOptions> dimensionsRegistry = getDimensionsRegistry(this.server);
         boolean isFrozen = ((RemoveFromRegistry<?>) dimensionsRegistry).fantasy$isFrozen();
         ((RemoveFromRegistry<?>) dimensionsRegistry).fantasy$setFrozen(false);
-        dimensionsRegistry.add(RegistryKey.of(RegistryKeys.DIMENSION, worldKey.getValue()), options, Lifecycle.stable());
+
+        var key = RegistryKey.of(RegistryKeys.DIMENSION, worldKey.getValue());
+        if(!dimensionsRegistry.contains(key)) {
+            dimensionsRegistry.add(key, options, Lifecycle.stable());
+        }
         ((RemoveFromRegistry<?>) dimensionsRegistry).fantasy$setFrozen(isFrozen);
 
         RuntimeWorld world = new RuntimeWorld(this.server, worldKey, config, style);
