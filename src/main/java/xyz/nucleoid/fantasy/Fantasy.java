@@ -126,10 +126,8 @@ public final class Fantasy {
     public RuntimeWorldHandle getOrOpenPersistentWorld(Identifier key, RuntimeWorldConfig config) {
         RegistryKey<World> worldKey = RegistryKey.of(RegistryKeys.WORLD, key);
 
-        ServerWorld world = this.server.getWorld(worldKey);
-        if (world == null) {
-            world = this.addPersistentWorld(key, config);
-        } else {
+        ServerWorld world = this.addPersistentWorld(key, config);
+        if (this.server.getWorld(worldKey) != null) {
             this.deletionQueue.remove(world);
         }
 
