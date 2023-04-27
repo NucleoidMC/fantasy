@@ -17,8 +17,18 @@ public final class RuntimeWorldHandle {
         ((FantasyWorldAccess) this.world).fantasy$setTickWhenEmpty(tickWhenEmpty);
     }
 
+    /**
+     * Deletes the world, including all stored files
+     */
     public void delete() {
         this.fantasy.enqueueWorldDeletion(this.world);
+    }
+
+    /**
+     * Unloads the world. It only deletes the files if world is temporary.
+     */
+    public void unload() {
+        this.fantasy.enqueueWorldUnloading(this.world);
     }
 
     public ServerWorld asWorld() {

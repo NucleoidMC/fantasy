@@ -8,6 +8,9 @@ import net.minecraft.registry.RegistryKeys;
 import net.minecraft.registry.SimpleRegistry;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.text.Text;
+import net.minecraft.util.ProgressListener;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraft.world.dimension.DimensionOptions;
 import net.minecraft.world.level.storage.LevelStorage;
@@ -32,6 +35,7 @@ final class RuntimeWorldManager {
         if (style == RuntimeWorld.Style.TEMPORARY) {
             ((FantasyDimensionOptions) (Object) options).fantasy$setSave(false);
         }
+        ((FantasyDimensionOptions) (Object) options).fantasy$setSaveProperties(false);
 
         SimpleRegistry<DimensionOptions> dimensionsRegistry = getDimensionsRegistry(this.server);
         boolean isFrozen = ((RemoveFromRegistry<?>) dimensionsRegistry).fantasy$isFrozen();
@@ -76,6 +80,34 @@ final class RuntimeWorldManager {
                     }
                 }
             }
+        }
+    }
+
+    void unload(ServerWorld world) {
+        RegistryKey<World> dimensionKey = world.getRegistryKey();
+
+        if (this.serverAccess.getWorlds().remove(dimensionKey, world)) {
+            world.save(new ProgressListener() {
+                @Override
+                public void setTitle(Text title) {}
+
+                @Override
+                public void setTitleAndTask(Text title) {}
+
+                @Override
+                public void setTask(Text task) {}
+
+                @Override
+                public void progressStagePercentage(int percentage) {}
+
+                @Override
+                public void setDone() {
+                    ServerWorldEvents.UNLOAD.invoker().onWorldUnload(RuntimeWorldManager.this.server, world);
+
+                    SimpleRegistry<DimensionOptions> dimensionsRegistry = getDimensionsRegistry(RuntimeWorldManager.this.server);
+                    RemoveFromRegistry.remove(dimensionsRegistry, dimensionKey.getValue());
+                }
+            }, true, false);
         }
     }
 

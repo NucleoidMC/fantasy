@@ -9,6 +9,8 @@ import xyz.nucleoid.fantasy.FantasyDimensionOptions;
 public class DimensionOptionsMixin implements FantasyDimensionOptions {
     @Unique
     private boolean fantasy$save = true;
+    @Unique
+    private boolean fantasy$saveProperties = true;
 
     @Override
     public void fantasy$setSave(boolean value) {
@@ -18,5 +20,15 @@ public class DimensionOptionsMixin implements FantasyDimensionOptions {
     @Override
     public boolean fantasy$getSave() {
         return this.fantasy$save;
+    }
+
+    @Override
+    public void fantasy$setSaveProperties(boolean value) {
+        this.fantasy$saveProperties = value;
+    }
+
+    @Override
+    public boolean fantasy$getSaveProperties() {
+        return this.fantasy$saveProperties;
     }
 }

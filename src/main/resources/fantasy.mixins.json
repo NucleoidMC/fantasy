@@ -5,9 +5,11 @@
   "compatibilityLevel": "JAVA_17",
   "mixins": [
     "MinecraftServerAccess",
+    "MinecraftServerMixin",
     "ServerChunkManagerMixin",
     "ServerWorldMixin",
     "registry.DimensionOptionsMixin",
+    "registry.DimensionOptionsRegistryHolderMixin",
     "registry.SimpleRegistryMixin"
   ],
   "injectors": {

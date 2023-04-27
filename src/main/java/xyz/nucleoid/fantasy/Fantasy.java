@@ -47,6 +47,7 @@ public final class Fantasy {
     private final RuntimeWorldManager worldManager;
 
     private final Set<ServerWorld> deletionQueue = new ReferenceOpenHashSet<>();
+    private final Set<ServerWorld> unloadingQueue = new ReferenceOpenHashSet<>();
 
     static {
         ServerTickEvents.START_SERVER_TICK.register(server -> {
@@ -87,6 +88,11 @@ public final class Fantasy {
         Set<ServerWorld> deletionQueue = this.deletionQueue;
         if (!deletionQueue.isEmpty()) {
             deletionQueue.removeIf(this::tickDeleteWorld);
+        }
+
+        Set<ServerWorld> unloadingQueue = this.unloadingQueue;
+        if (!unloadingQueue.isEmpty()) {
+            unloadingQueue.removeIf(this::tickUnloadWorld);
         }
     }
 
@@ -159,9 +165,25 @@ public final class Fantasy {
         });
     }
 
+    void enqueueWorldUnloading(ServerWorld world) {
+        this.server.submit(() -> {
+            this.unloadingQueue.add(world);
+        });
+    }
+
     private boolean tickDeleteWorld(ServerWorld world) {
         if (this.isWorldUnloaded(world)) {
             this.worldManager.delete(world);
+            return true;
+        } else {
+            this.kickPlayers(world);
+            return false;
+        }
+    }
+
+    private boolean tickUnloadWorld(ServerWorld world) {
+        if (this.isWorldUnloaded(world)) {
+            this.worldManager.unload(world);
             return true;
         } else {
             this.kickPlayers(world);
