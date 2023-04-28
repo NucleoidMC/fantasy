@@ -47,7 +47,7 @@ final class RuntimeWorldManager {
         }
         ((RemoveFromRegistry<?>) dimensionsRegistry).fantasy$setFrozen(isFrozen);
 
-        RuntimeWorld world = new RuntimeWorld(this.server, worldKey, config, style);
+        RuntimeWorld world = config.getWorldConstructor().createWorld(this.server, worldKey, config, style);
 
         this.serverAccess.getWorlds().put(world.getRegistryKey(), world);
         ServerWorldEvents.LOAD.invoker().onWorldLoad(this.server, world);

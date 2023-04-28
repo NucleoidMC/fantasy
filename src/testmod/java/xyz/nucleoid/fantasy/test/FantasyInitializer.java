@@ -28,7 +28,13 @@ public final class FantasyInitializer implements ModInitializer {
     @Override
     public void onInitialize() {
         ServerLifecycleEvents.SERVER_STARTED.register((s) -> {
-            Fantasy.get(s).openTemporaryWorld(new RuntimeWorldConfig().setGenerator(new VoidChunkGenerator(s.getRegistryManager().get(RegistryKeys.BIOME).getEntry(0).get())));
+            Fantasy.get(s).openTemporaryWorld(
+                    new RuntimeWorldConfig().setGenerator(new VoidChunkGenerator(s.getRegistryManager().get(RegistryKeys.BIOME).getEntry(0).get())).setWorldConstructor(CustomWorld::new)
+            );
+
+            Fantasy.get(s).openTemporaryWorld(
+                    new RuntimeWorldConfig().setGenerator(s.getOverworld().getChunkManager().getChunkGenerator()).setWorldConstructor(CustomWorld::new)
+            );
         });
 
         CommandRegistrationCallback.EVENT.register(((dispatcher, registryAccess, environment) -> {

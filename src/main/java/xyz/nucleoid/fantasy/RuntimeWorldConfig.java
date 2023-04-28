@@ -28,6 +28,7 @@ public final class RuntimeWorldConfig {
     private long timeOfDay = 6000;
     private Difficulty difficulty = Difficulty.NORMAL;
     private final GameRuleStore gameRules = new GameRuleStore();
+    private RuntimeWorld.Constructor worldConstructor = RuntimeWorld::new;
 
     private int sunnyTime = Integer.MAX_VALUE;
     private boolean raining;
@@ -37,6 +38,11 @@ public final class RuntimeWorldConfig {
 
     public RuntimeWorldConfig setSeed(long seed) {
         this.seed = seed;
+        return this;
+    }
+
+    public RuntimeWorldConfig setWorldConstructor(RuntimeWorld.Constructor constructor) {
+        this.worldConstructor = constructor;
         return this;
     }
 
@@ -139,6 +145,10 @@ public final class RuntimeWorldConfig {
     @Nullable
     public ChunkGenerator getGenerator() {
         return this.generator;
+    }
+
+    public RuntimeWorld.Constructor getWorldConstructor() {
+        return this.worldConstructor;
     }
 	
     public boolean shouldTickTime() {
