@@ -28,7 +28,11 @@ public final class RuntimeWorldHandle {
      * Unloads the world. It only deletes the files if world is temporary.
      */
     public void unload() {
-        this.fantasy.enqueueWorldUnloading(this.world);
+        if (this.world instanceof RuntimeWorld runtimeWorld && runtimeWorld.style == RuntimeWorld.Style.TEMPORARY) {
+            this.fantasy.enqueueWorldDeletion(this.world);
+        } else {
+            this.fantasy.enqueueWorldUnloading(this.world);
+        }
     }
 
     public ServerWorld asWorld() {

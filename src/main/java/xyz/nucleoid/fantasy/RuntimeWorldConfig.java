@@ -1,6 +1,7 @@
 package xyz.nucleoid.fantasy;
 
 import com.google.common.base.Preconditions;
+import net.fabricmc.fabric.api.util.TriState;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
 import net.minecraft.registry.entry.RegistryEntry;
@@ -35,6 +36,7 @@ public final class RuntimeWorldConfig {
     private int rainTime;
     private boolean thundering;
     private int thunderTime;
+    private TriState flat = TriState.DEFAULT;
 
     public RuntimeWorldConfig setSeed(long seed) {
         this.seed = seed;
@@ -124,6 +126,15 @@ public final class RuntimeWorldConfig {
         return this;
     }
 
+    public RuntimeWorldConfig setFlat(TriState state) {
+        this.flat = state;
+        return this;
+    }
+
+    public RuntimeWorldConfig setFlat(boolean state) {
+        return this.setFlat(TriState.of(state));
+    }
+
     public long getSeed() {
         return this.seed;
     }
@@ -185,5 +196,9 @@ public final class RuntimeWorldConfig {
 
     public boolean isThundering() {
         return this.thundering;
+    }
+
+    public TriState isFlat() {
+        return this.flat;
     }
 }

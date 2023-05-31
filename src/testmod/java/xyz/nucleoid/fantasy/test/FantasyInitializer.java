@@ -51,13 +51,18 @@ public final class FantasyInitializer implements ModInitializer {
                                                     .setGenerator(context.getSource().getServer().getOverworld().getChunkManager().getChunkGenerator())
                                                     .setSeed(id.hashCode())
                                     );
-                                    context.getSource().sendFeedback(Text.literal("WorldCreate: " + (System.currentTimeMillis() - t)), false);
-
+                                    {
+                                        var text = Text.literal("WorldCreate: " + (System.currentTimeMillis() - t));
+                                        context.getSource().sendFeedback(() -> text, false);
+                                    }
                                     worlds.put(id, x);
+
                                     t = System.currentTimeMillis();
                                     FabricDimensions.teleport(context.getSource().getEntity(), x.asWorld(), new TeleportTarget(new Vec3d(0, 100 ,0) , Vec3d.ZERO, 0, 0));
-                                    context.getSource().sendFeedback(Text.literal("Teleport: " + (System.currentTimeMillis() - t)), false);
-                                } catch (Throwable e) {
+                                    {
+                                        var text = Text.literal("Teleport: " + (System.currentTimeMillis() - t));
+                                        context.getSource().sendFeedback(() -> text, false);
+                                    }                                } catch (Throwable e) {
                                     e.printStackTrace();
                                 }
 
