@@ -32,7 +32,7 @@ This specifies how the dimension should be created, involving a dimension type, 
 For example, we could create a config like such:
 ```java
 RuntimeWorldConfig worldConfig = new RuntimeWorldConfig()
-        .setDimensionType(DimensionType.OVERWORLD_REGISTRY_KEY)
+        .setDimensionType(DimensionTypes.OVERWORLD)
         .setDifficulty(Difficulty.HARD)
         .setGameRule(GameRules.DO_DAYLIGHT_CYCLE, false)
         .setGenerator(server.getOverworld().getChunkManager().getChunkGenerator())
