@@ -87,8 +87,6 @@ final class RuntimeWorldManager {
         RegistryKey<World> dimensionKey = world.getRegistryKey();
 
         if (this.serverAccess.getWorlds().remove(dimensionKey, world)) {
-            ServerWorldEvents.UNLOAD.invoker().onWorldUnload(RuntimeWorldManager.this.server, world);
-
             world.save(new ProgressListener() {
                 @Override
                 public void setTitle(Text title) {}
@@ -105,6 +103,8 @@ final class RuntimeWorldManager {
                 @Override
                 public void setDone() {}
             }, true, false);
+
+            ServerWorldEvents.UNLOAD.invoker().onWorldUnload(RuntimeWorldManager.this.server, world);
 
             SimpleRegistry<DimensionOptions> dimensionsRegistry = getDimensionsRegistry(RuntimeWorldManager.this.server);
             RemoveFromRegistry.remove(dimensionsRegistry, dimensionKey.getValue());
