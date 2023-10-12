@@ -87,6 +87,8 @@ final class RuntimeWorldManager {
         RegistryKey<World> dimensionKey = world.getRegistryKey();
 
         if (this.serverAccess.getWorlds().remove(dimensionKey, world)) {
+            ServerWorldEvents.UNLOAD.invoker().onWorldUnload(RuntimeWorldManager.this.server, world);
+
             world.save(new ProgressListener() {
                 @Override
                 public void setTitle(Text title) {}
@@ -101,13 +103,11 @@ final class RuntimeWorldManager {
                 public void progressStagePercentage(int percentage) {}
 
                 @Override
-                public void setDone() {
-                    ServerWorldEvents.UNLOAD.invoker().onWorldUnload(RuntimeWorldManager.this.server, world);
-
-                    SimpleRegistry<DimensionOptions> dimensionsRegistry = getDimensionsRegistry(RuntimeWorldManager.this.server);
-                    RemoveFromRegistry.remove(dimensionsRegistry, dimensionKey.getValue());
-                }
+                public void setDone() {}
             }, true, false);
+
+            SimpleRegistry<DimensionOptions> dimensionsRegistry = getDimensionsRegistry(RuntimeWorldManager.this.server);
+            RemoveFromRegistry.remove(dimensionsRegistry, dimensionKey.getValue());
         }
     }
 
