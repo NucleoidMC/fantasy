@@ -9,6 +9,7 @@ import net.minecraft.registry.*;
 import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.registry.entry.RegistryEntryList;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.structure.StructureSet;
 import net.minecraft.structure.StructureTemplateManager;
 import net.minecraft.util.collection.Pool;
@@ -85,7 +86,7 @@ public class VoidChunkGenerator extends ChunkGenerator {
     };
 
     public static final MultiNoiseUtil.MultiNoiseSampler EMPTY_SAMPLER = new MultiNoiseUtil.MultiNoiseSampler(ZERO_DENSITY_FUNCTION, ZERO_DENSITY_FUNCTION, ZERO_DENSITY_FUNCTION, ZERO_DENSITY_FUNCTION, ZERO_DENSITY_FUNCTION, ZERO_DENSITY_FUNCTION, Collections.emptyList());
-
+    
     public VoidChunkGenerator(RegistryEntry<Biome> biome) {
         super(new FixedBiomeSource(biome));
         this.biome = biome;
@@ -104,10 +105,20 @@ public class VoidChunkGenerator extends ChunkGenerator {
         this(biomeRegistry.getEntry(biome).get());
     }
 
+    // Create an empty (void) world!
+    public VoidChunkGenerator(MinecraftServer server) {
+        this(RegistryEntry.of(server.getRegistryManager().get(RegistryKeys.BIOME).getEntry(0).get()));
+    }
+    // Create a world with a given Biome (as an ID)
+    public VoidChunkGenerator(MinecraftServer server, Identifier biome) {
+        this(RegistryEntry.of(server.getRegistryManager().get(RegistryKeys.BIOME).get(biome)));
+        
+    }
     @Override
     protected Codec<? extends ChunkGenerator> getCodec() {
         return CODEC;
     }
+    
 
     @Override
     public void carve(ChunkRegion chunkRegion, long seed, NoiseConfig noiseConfig, BiomeAccess world, StructureAccessor structureAccessor, Chunk chunk, GenerationStep.Carver carverStep) {
