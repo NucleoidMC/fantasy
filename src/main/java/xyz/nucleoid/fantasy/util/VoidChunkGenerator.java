@@ -12,6 +12,7 @@ import net.minecraft.server.world.ServerWorld;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.structure.StructureSet;
 import net.minecraft.structure.StructureTemplateManager;
+import net.minecraft.util.Identifier;
 import net.minecraft.util.collection.Pool;
 import net.minecraft.util.dynamic.CodecHolder;
 import net.minecraft.util.math.BlockPos;
@@ -107,12 +108,11 @@ public class VoidChunkGenerator extends ChunkGenerator {
 
     // Create an empty (void) world!
     public VoidChunkGenerator(MinecraftServer server) {
-        this(RegistryEntry.of(server.getRegistryManager().get(RegistryKeys.BIOME).getEntry(0).get()));
+        this(server.getRegistryManager().get(RegistryKeys.BIOME), BiomeKeys.THE_VOID);
     }
     // Create a world with a given Biome (as an ID)
     public VoidChunkGenerator(MinecraftServer server, Identifier biome) {
-        this(RegistryEntry.of(server.getRegistryManager().get(RegistryKeys.BIOME).get(biome)));
-        
+        this(server.getRegistryManager().get(RegistryKeys.BIOME), RegistryKey.of(RegistryKeys.BIOME, biome));
     }
     @Override
     protected Codec<? extends ChunkGenerator> getCodec() {
