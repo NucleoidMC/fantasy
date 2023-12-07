@@ -1,8 +1,8 @@
 package xyz.nucleoid.fantasy.mixin.registry;
 
 import com.mojang.serialization.Lifecycle;
-import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.ObjectList;
+import it.unimi.dsi.fastutil.objects.Reference2IntMap;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.SimpleRegistry;
 import net.minecraft.registry.entry.RegistryEntry;
@@ -30,7 +30,7 @@ public abstract class SimpleRegistryMixin<T> implements RemoveFromRegistry<T> {
 
     @Shadow @Final private ObjectList<RegistryEntry.Reference<T>> rawIdToEntry;
 
-    @Shadow @Final private Object2IntMap<T> entryToRawId;
+    @Shadow @Final private Reference2IntMap<T> entryToRawId;
 
     @Shadow public abstract Optional<RegistryEntry<T>> getEntry(int rawId);
 
