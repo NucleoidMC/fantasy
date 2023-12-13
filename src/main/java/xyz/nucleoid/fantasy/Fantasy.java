@@ -187,7 +187,7 @@ public final class Fantasy {
         });
     }
 
-    private boolean tickDeleteWorld(ServerWorld world) {
+    public boolean tickDeleteWorld(ServerWorld world) {
         if (this.isWorldUnloaded(world)) {
             this.worldManager.delete(world);
             return true;
@@ -197,7 +197,7 @@ public final class Fantasy {
         }
     }
 
-    private boolean tickUnloadWorld(ServerWorld world) {
+    public boolean tickUnloadWorld(ServerWorld world) {
         if (this.isWorldUnloaded(world)) {
             this.worldManager.unload(world);
             return true;
