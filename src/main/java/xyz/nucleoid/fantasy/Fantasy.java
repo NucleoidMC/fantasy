@@ -108,7 +108,23 @@ public final class Fantasy {
      * @return a future providing the created world
      */
     public RuntimeWorldHandle openTemporaryWorld(RuntimeWorldConfig config) {
-        RuntimeWorld world = this.addTemporaryWorld(config);
+        return this.openTemporaryWorld(generateTemporaryWorldKey(), config);
+    }
+
+    /**
+     * Creates a new temporary world with the given identifier and {@link RuntimeWorldConfig} that will not be saved and will be
+     * deleted when the server exits.
+     * <p>
+     * The created world is returned asynchronously through a {@link RuntimeWorldHandle}.
+     * This handle can be used to acquire the {@link ServerWorld} object through {@link RuntimeWorldHandle#asWorld()},
+     * as well as to delete the world through {@link RuntimeWorldHandle#delete()}.
+     *
+     * @param key the unique identifier for this dimension
+     * @param config the config with which to construct this temporary world
+     * @return a future providing the created world
+     */
+    public RuntimeWorldHandle openTemporaryWorld(Identifier key, RuntimeWorldConfig config) {
+        RuntimeWorld world = this.addTemporaryWorld(key, config);
         return new RuntimeWorldHandle(this, world);
     }
 
@@ -147,8 +163,8 @@ public final class Fantasy {
         return this.worldManager.add(worldKey, config, RuntimeWorld.Style.PERSISTENT);
     }
 
-    private RuntimeWorld addTemporaryWorld(RuntimeWorldConfig config) {
-        RegistryKey<World> worldKey = RegistryKey.of(RegistryKeys.WORLD, generateTemporaryWorldKey());
+    private RuntimeWorld addTemporaryWorld(Identifier key, RuntimeWorldConfig config) {
+        RegistryKey<World> worldKey = RegistryKey.of(RegistryKeys.WORLD, key);
 
         try {
             LevelStorage.Session session = this.serverAccess.getSession();
