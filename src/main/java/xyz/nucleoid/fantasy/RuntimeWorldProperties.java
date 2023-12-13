@@ -19,6 +19,8 @@ public final class RuntimeWorldProperties extends UnmodifiableLevelProperties {
 
     @Override
     public GameRules getGameRules() {
+        if (this.config.shouldMirrorOverworldGameRules())
+            return super.getGameRules();
         return this.rules;
     }
 
