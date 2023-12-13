@@ -29,6 +29,7 @@ public final class RuntimeWorldConfig {
     private long timeOfDay = 6000;
     private Difficulty difficulty = Difficulty.NORMAL;
     private final GameRuleStore gameRules = new GameRuleStore();
+    private boolean mirrorOverworldGameRules = false;
     private RuntimeWorld.Constructor worldConstructor = RuntimeWorld::new;
 
     private int sunnyTime = Integer.MAX_VALUE;
@@ -94,6 +95,11 @@ public final class RuntimeWorldConfig {
 
     public RuntimeWorldConfig setGameRule(GameRules.Key<GameRules.IntRule> key, int value) {
         this.gameRules.set(key, value);
+        return this;
+    }
+
+    public RuntimeWorldConfig setMirrorOverworldGameRules(boolean mirror) {
+        this.mirrorOverworldGameRules = mirror;
         return this;
     }
 
@@ -176,6 +182,10 @@ public final class RuntimeWorldConfig {
 
     public GameRuleStore getGameRules() {
         return this.gameRules;
+    }
+
+    public boolean shouldMirrorOverworldGameRules(){
+        return this.mirrorOverworldGameRules;
     }
 
     public int getSunnyTime() {
