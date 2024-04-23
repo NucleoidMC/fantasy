@@ -10,7 +10,7 @@ import java.util.function.BooleanSupplier;
 
 public class CustomWorld extends RuntimeWorld {
     private long dynSeed;
-    //private final RecipeManager RECIPE_MANAGER = new RecipeManager();
+    //private static final RecipeManager RECIPE_MANAGER = new RecipeManager();
 
     protected CustomWorld(MinecraftServer server, RegistryKey<World> registryKey, RuntimeWorldConfig config, Style style) {
         super(server, registryKey, config, style);
