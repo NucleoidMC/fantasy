@@ -36,7 +36,7 @@ final class RuntimeWorldManager {
         if (style == RuntimeWorld.Style.TEMPORARY) {
             ((FantasyDimensionOptions) (Object) options).fantasy$setSave(false);
         }
-        //((FantasyDimensionOptions) (Object) options).fantasy$setSaveProperties(false);
+        ((FantasyDimensionOptions) (Object) options).fantasy$setSaveProperties(false);
 
         SimpleRegistry<DimensionOptions> dimensionsRegistry = getDimensionsRegistry(this.server);
         boolean isFrozen = ((RemoveFromRegistry<?>) dimensionsRegistry).fantasy$isFrozen();
