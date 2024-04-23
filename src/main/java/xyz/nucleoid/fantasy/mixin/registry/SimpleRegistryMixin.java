@@ -1,24 +1,26 @@
 package xyz.nucleoid.fantasy.mixin.registry;
 
-import com.mojang.serialization.Lifecycle;
+import com.mojang.logging.LogUtils;
 import it.unimi.dsi.fastutil.objects.ObjectList;
 import it.unimi.dsi.fastutil.objects.Reference2IntMap;
+import net.minecraft.registry.Registry;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.SimpleRegistry;
 import net.minecraft.registry.entry.RegistryEntry;
+import net.minecraft.registry.entry.RegistryEntryInfo;
 import net.minecraft.util.Identifier;
-import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 import xyz.nucleoid.fantasy.RemoveFromRegistry;
 
-import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 @Mixin(SimpleRegistry.class)
 public abstract class SimpleRegistryMixin<T> implements RemoveFromRegistry<T> {
+    @Unique private static final Logger fantasy$LOGGER = LogUtils.getLogger();
 
     @Shadow @Final private Map<T, RegistryEntry.Reference<T>> valueToEntry;
 
@@ -26,17 +28,18 @@ public abstract class SimpleRegistryMixin<T> implements RemoveFromRegistry<T> {
 
     @Shadow @Final private Map<RegistryKey<T>, RegistryEntry.Reference<T>> keyToEntry;
 
-    @Shadow @Final private Map<T, Lifecycle> entryToLifecycle;
+    // @Shadow @Final private Map<T, Lifecycle> entryToLifecycle;
+    @Shadow @Final private Map<RegistryKey<T>, RegistryEntryInfo> keyToEntryInfo;
 
     @Shadow @Final private ObjectList<RegistryEntry.Reference<T>> rawIdToEntry;
 
     @Shadow @Final private Reference2IntMap<T> entryToRawId;
 
-    @Shadow public abstract Optional<RegistryEntry<T>> getEntry(int rawId);
-
     @Shadow private boolean frozen;
 
-    @Shadow @Nullable private List<RegistryEntry.Reference<T>> cachedEntries;
+    //@Shadow @Nullable private List<RegistryEntry.Reference<T>> cachedEntries;
+
+    @Shadow @Final RegistryKey<? extends Registry<T>> key;
 
     @Override
     public boolean fantasy$remove(T entry) {
@@ -50,15 +53,15 @@ public abstract class SimpleRegistryMixin<T> implements RemoveFromRegistry<T> {
             this.rawIdToEntry.set(rawId, null);
             this.idToEntry.remove(registryEntry.registryKey().getValue());
             this.keyToEntry.remove(registryEntry.registryKey());
-            this.entryToLifecycle.remove(entry);
+            this.keyToEntryInfo.remove(this.key);
             this.valueToEntry.remove(entry);
-            if (this.cachedEntries != null) {
+            /*if (this.cachedEntries != null) {
                 this.cachedEntries.remove(registryEntry);
-            }
+            }*/
 
             return true;
         } catch (Throwable e) {
-            e.printStackTrace();
+            fantasy$LOGGER.error("Fantasy: Could not remove entry", e);
             return false;
         }
     }

@@ -72,9 +72,10 @@ public final class RuntimeWorldConfig {
         this.generator = generator;
         return this;
     }
-	
+
     public RuntimeWorldConfig setShouldTickTime(boolean shouldTickTime) {
         this.shouldTickTime = shouldTickTime;
+        this.gameRules.set(GameRules.DO_DAYLIGHT_CYCLE, shouldTickTime);
         return this;
     }
 
@@ -167,7 +168,7 @@ public final class RuntimeWorldConfig {
     public RuntimeWorld.Constructor getWorldConstructor() {
         return this.worldConstructor;
     }
-	
+
     public boolean shouldTickTime() {
         return this.shouldTickTime;
     }

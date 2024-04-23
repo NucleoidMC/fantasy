@@ -1,7 +1,9 @@
 package xyz.nucleoid.fantasy.util;
 
+import com.mojang.datafixers.kinds.Applicative;
 import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.SpawnGroup;
@@ -46,11 +48,9 @@ import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 public class VoidChunkGenerator extends ChunkGenerator {
-    public static final Codec<VoidChunkGenerator> CODEC = RecordCodecBuilder.create(instance -> {
-        return instance.group(
-                Biome.REGISTRY_CODEC.stable().fieldOf("biome").forGetter(g -> g.biome)
-        ).apply(instance, instance.stable(VoidChunkGenerator::new));
-    });
+    public static final MapCodec<VoidChunkGenerator> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+            Biome.REGISTRY_CODEC.stable().fieldOf("biome").forGetter(VoidChunkGenerator::getBiome)
+    ).apply(instance, instance.stable(VoidChunkGenerator::new)));
 
     private static final VerticalBlockSample EMPTY_SAMPLE = new VerticalBlockSample(0, new BlockState[0]);
 
@@ -82,12 +82,12 @@ public class VoidChunkGenerator extends ChunkGenerator {
 
         @Override
         public CodecHolder<? extends DensityFunction> getCodecHolder() {
-            return CodecHolder.of(Codec.unit(this));
+            return CodecHolder.of(MapCodec.unit(this));
         }
     };
 
     public static final MultiNoiseUtil.MultiNoiseSampler EMPTY_SAMPLER = new MultiNoiseUtil.MultiNoiseSampler(ZERO_DENSITY_FUNCTION, ZERO_DENSITY_FUNCTION, ZERO_DENSITY_FUNCTION, ZERO_DENSITY_FUNCTION, ZERO_DENSITY_FUNCTION, ZERO_DENSITY_FUNCTION, Collections.emptyList());
-    
+
     public VoidChunkGenerator(RegistryEntry<Biome> biome) {
         super(new FixedBiomeSource(biome));
         this.biome = biome;
@@ -115,10 +115,13 @@ public class VoidChunkGenerator extends ChunkGenerator {
         this(server.getRegistryManager().get(RegistryKeys.BIOME), RegistryKey.of(RegistryKeys.BIOME, biome));
     }
     @Override
-    protected Codec<? extends ChunkGenerator> getCodec() {
+    protected MapCodec<? extends ChunkGenerator> getCodec() {
         return CODEC;
     }
-    
+
+    protected RegistryEntry<Biome> getBiome() {
+        return this.biome;
+    }
 
     @Override
     public void carve(ChunkRegion chunkRegion, long seed, NoiseConfig noiseConfig, BiomeAccess world, StructureAccessor structureAccessor, Chunk chunk, GenerationStep.Carver carverStep) {

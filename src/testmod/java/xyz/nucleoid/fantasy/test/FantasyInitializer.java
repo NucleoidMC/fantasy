@@ -1,16 +1,19 @@
 package xyz.nucleoid.fantasy.test;
 
+import com.mojang.logging.LogUtils;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.dimension.v1.FabricDimensions;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.minecraft.command.argument.IdentifierArgumentType;
 import net.minecraft.registry.RegistryKeys;
+import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.profiler.Profiler;
 import net.minecraft.world.TeleportTarget;
+import org.slf4j.Logger;
 import xyz.nucleoid.fantasy.Fantasy;
 import xyz.nucleoid.fantasy.RuntimeWorldConfig;
 import xyz.nucleoid.fantasy.RuntimeWorldHandle;
@@ -23,6 +26,7 @@ import static net.minecraft.server.command.CommandManager.argument;
 import static net.minecraft.server.command.CommandManager.literal;
 
 public final class FantasyInitializer implements ModInitializer {
+    private static final Logger LOGGER = LogUtils.getLogger();
     private HashMap<Identifier, RuntimeWorldHandle> worlds = new HashMap<>();
 
     @Override
@@ -42,28 +46,33 @@ public final class FantasyInitializer implements ModInitializer {
                     argument("name", IdentifierArgumentType.identifier())
                             .executes((context -> {
                                 try {
-                                    var t = System.currentTimeMillis();
+                                    ServerCommandSource source = context.getSource();
+
+                                    var ref = new Object() {
+                                        long t = System.currentTimeMillis();
+                                    };
+
                                     var id = IdentifierArgumentType.getIdentifier(context, "name");
 
-                                    var x = Fantasy.get(context.getSource().getServer()).getOrOpenPersistentWorld(
+                                    var x = Fantasy.get(source.getServer()).getOrOpenPersistentWorld(
                                             id,
                                             new RuntimeWorldConfig()
-                                                    .setGenerator(context.getSource().getServer().getOverworld().getChunkManager().getChunkGenerator())
+                                                    .setGenerator(source.getServer().getOverworld().getChunkManager().getChunkGenerator())
                                                     .setSeed(id.hashCode())
                                     );
-                                    {
-                                        var text = Text.literal("WorldCreate: " + (System.currentTimeMillis() - t));
-                                        context.getSource().sendFeedback(() -> text, false);
-                                    }
-                                    worlds.put(id, x);
 
-                                    t = System.currentTimeMillis();
-                                    FabricDimensions.teleport(context.getSource().getEntity(), x.asWorld(), new TeleportTarget(new Vec3d(0, 100 ,0) , Vec3d.ZERO, 0, 0));
-                                    {
-                                        var text = Text.literal("Teleport: " + (System.currentTimeMillis() - t));
-                                        context.getSource().sendFeedback(() -> text, false);
-                                    }                                } catch (Throwable e) {
-                                    e.printStackTrace();
+                                    source.sendFeedback(() -> Text.literal("WorldCreate: " + (System.currentTimeMillis() - ref.t)), false);
+
+                                    this.worlds.put(id, x);
+
+                                    ref.t = System.currentTimeMillis();
+                                    if (source.getEntity() != null) {
+                                        FabricDimensions.teleport(source.getEntity(), x.asWorld(), new TeleportTarget(new Vec3d(0, 100, 0), Vec3d.ZERO, 0, 0));
+                                    }
+
+                                    source.sendFeedback(() -> Text.literal("Teleport: " + (System.currentTimeMillis() - ref.t)), false);
+                                } catch (Throwable e) {
+                                    LOGGER.error("Failed to open world", e);
                                 }
 
                                 return 0;
@@ -74,11 +83,17 @@ public final class FantasyInitializer implements ModInitializer {
                     argument("name", IdentifierArgumentType.identifier())
                             .executes((context -> {
                                 try {
+                                    ServerCommandSource source = context.getSource();
                                     var id = IdentifierArgumentType.getIdentifier(context, "name");
-                                    worlds.get(id).delete();
-                                    worlds.remove(id);
+                                    if (this.worlds.get(id) == null) {
+                                        source.sendError(Text.literal("This world does not exist"));
+                                    }
+                                    this.worlds.get(id).delete();
+                                    this.worlds.remove(id);
+
+                                    source.sendFeedback(() -> Text.literal("World \"" + id + "\" deleted"), true);
                                 } catch (Throwable e) {
-                                    e.printStackTrace();
+                                    LOGGER.error("Failed to delete world", e);
                                 }
                                 return 0;
                             }))
@@ -88,11 +103,16 @@ public final class FantasyInitializer implements ModInitializer {
                     argument("name", IdentifierArgumentType.identifier())
                             .executes((context -> {
                                 try {
+                                    ServerCommandSource source = context.getSource();
                                     var id = IdentifierArgumentType.getIdentifier(context, "name");
-                                    worlds.get(id).unload();
-                                    worlds.remove(id);
+                                    if (this.worlds.get(id) == null) {
+                                        source.sendError(Text.literal("This world does not exist"));
+                                    }
+                                    this.worlds.get(id).unload();
+                                    this.worlds.remove(id);
+                                    source.sendFeedback(() -> Text.literal("World \"" + id + "\" unloaded"), true);
                                 } catch (Throwable e) {
-                                    e.printStackTrace();
+                                    LOGGER.error("Failed to unload world", e);
                                 }
 
                                 return 0;

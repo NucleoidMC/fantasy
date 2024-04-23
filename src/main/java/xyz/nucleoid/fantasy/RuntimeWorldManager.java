@@ -6,6 +6,7 @@ import net.minecraft.registry.DynamicRegistryManager;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
 import net.minecraft.registry.SimpleRegistry;
+import net.minecraft.registry.entry.RegistryEntryInfo;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
@@ -35,7 +36,7 @@ final class RuntimeWorldManager {
         if (style == RuntimeWorld.Style.TEMPORARY) {
             ((FantasyDimensionOptions) (Object) options).fantasy$setSave(false);
         }
-        ((FantasyDimensionOptions) (Object) options).fantasy$setSaveProperties(false);
+        //((FantasyDimensionOptions) (Object) options).fantasy$setSaveProperties(false);
 
         SimpleRegistry<DimensionOptions> dimensionsRegistry = getDimensionsRegistry(this.server);
         boolean isFrozen = ((RemoveFromRegistry<?>) dimensionsRegistry).fantasy$isFrozen();
@@ -43,7 +44,7 @@ final class RuntimeWorldManager {
 
         var key = RegistryKey.of(RegistryKeys.DIMENSION, worldKey.getValue());
         if(!dimensionsRegistry.contains(key)) {
-            dimensionsRegistry.add(key, options, Lifecycle.stable());
+            dimensionsRegistry.add(key, options, RegistryEntryInfo.DEFAULT);
         }
         ((RemoveFromRegistry<?>) dimensionsRegistry).fantasy$setFrozen(isFrozen);
 
