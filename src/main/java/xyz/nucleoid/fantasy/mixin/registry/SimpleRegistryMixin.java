@@ -61,7 +61,7 @@ public abstract class SimpleRegistryMixin<T> implements RemoveFromRegistry<T> {
 
             return true;
         } catch (Throwable e) {
-            fantasy$LOGGER.error("Fantasy: Could not remove entry", e);
+            fantasy$LOGGER.error("Could not remove entry", e);
             return false;
         }
     }
