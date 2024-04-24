@@ -45,8 +45,8 @@ public final class FantasyInitializer implements ModInitializer {
             dispatcher.register(literal("fantasy_open").then(
                     argument("name", IdentifierArgumentType.identifier())
                             .executes((context -> {
+                                ServerCommandSource source = context.getSource();
                                 try {
-                                    ServerCommandSource source = context.getSource();
 
                                     var ref = new Object() {
                                         long t = System.currentTimeMillis();
@@ -71,22 +71,24 @@ public final class FantasyInitializer implements ModInitializer {
                                     }
 
                                     source.sendFeedback(() -> Text.literal("Teleport: " + (System.currentTimeMillis() - ref.t)), false);
+                                    return 1;
                                 } catch (Throwable e) {
                                     LOGGER.error("Failed to open world", e);
+                                    source.sendError(Text.literal("Failed to open world"));
+                                    return 0;
                                 }
-
-                                return 0;
                             }))
             ));
 
             dispatcher.register(literal("fantasy_delete").then(
                     argument("name", IdentifierArgumentType.identifier())
-                            .executes((context -> {
+                            .executes(context -> {
+                                ServerCommandSource source = context.getSource();
                                 try {
-                                    ServerCommandSource source = context.getSource();
                                     var id = IdentifierArgumentType.getIdentifier(context, "name");
                                     if (this.worlds.get(id) == null) {
                                         source.sendError(Text.literal("This world does not exist"));
+                                        return 0;
                                     }
                                     this.worlds.get(id).delete();
                                     this.worlds.remove(id);
@@ -94,29 +96,32 @@ public final class FantasyInitializer implements ModInitializer {
                                     source.sendFeedback(() -> Text.literal("World \"" + id + "\" deleted"), true);
                                 } catch (Throwable e) {
                                     LOGGER.error("Failed to delete world", e);
+                                    source.sendError(Text.literal("Failed to delete world"));
                                 }
-                                return 0;
-                            }))
+                                return 1;
+                            })
             ));
 
             dispatcher.register(literal("fantasy_unload").then(
                     argument("name", IdentifierArgumentType.identifier())
-                            .executes((context -> {
+                            .executes(context -> {
+                                ServerCommandSource source = context.getSource();
                                 try {
-                                    ServerCommandSource source = context.getSource();
                                     var id = IdentifierArgumentType.getIdentifier(context, "name");
                                     if (this.worlds.get(id) == null) {
                                         source.sendError(Text.literal("This world does not exist"));
+                                        return 0;
                                     }
                                     this.worlds.get(id).unload();
                                     this.worlds.remove(id);
                                     source.sendFeedback(() -> Text.literal("World \"" + id + "\" unloaded"), true);
                                 } catch (Throwable e) {
                                     LOGGER.error("Failed to unload world", e);
+                                    source.sendError(Text.literal("Failed to unload world"));
                                 }
 
-                                return 0;
-                            }))
+                                return 1;
+                            })
             ));
         }));
     }
