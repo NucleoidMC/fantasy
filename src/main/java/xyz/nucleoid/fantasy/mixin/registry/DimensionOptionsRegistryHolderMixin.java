@@ -20,11 +20,6 @@ public class DimensionOptionsRegistryHolderMixin {
 
     @ModifyArg(method = "method_45516", at = @At(value = "INVOKE", target = "Lcom/mojang/serialization/MapCodec;forGetter(Ljava/util/function/Function;)Lcom/mojang/serialization/codecs/RecordCodecBuilder;"))
     private static Function<Object, Registry<DimensionOptions>> fantasy$swapRegistryGetter(Function<Object, Registry<DimensionOptions>> getter) {
-        try {
-            return (x) -> new FilteredRegistry<>(getter.apply(x), FantasyDimensionOptions.SAVE_PROPERTIES_PREDICATE);
-        } catch (Throwable e) {
-            fantasy$LOGGER.error("Failed method_45516", e);
-            throw e;
-        }
+        return (x) -> new FilteredRegistry<>(getter.apply(x), FantasyDimensionOptions.SAVE_PROPERTIES_PREDICATE);
     }
 }
