@@ -58,6 +58,7 @@ public final class FantasyInitializer implements ModInitializer {
                                             id,
                                             new RuntimeWorldConfig()
                                                     .setGenerator(source.getServer().getOverworld().getChunkManager().getChunkGenerator())
+                                                    .setDimensionType(source.getServer().getOverworld().getDimensionEntry())
                                                     .setSeed(id.hashCode())
                                     );
 
