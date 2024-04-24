@@ -108,7 +108,6 @@ public final class FantasyInitializer implements ModInitializer {
                             .executes(context -> {
                                 ServerCommandSource source = context.getSource();
                                 try {
-                                    ServerCommandSource source = context.getSource();
                                     var id = IdentifierArgumentType.getIdentifier(context, "name");
                                     if (this.worlds.get(id) == null) {
                                         source.sendError(Text.literal("This world does not exist"));
