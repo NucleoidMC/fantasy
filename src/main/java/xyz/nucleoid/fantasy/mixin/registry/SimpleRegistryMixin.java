@@ -21,20 +21,12 @@ import java.util.Map;
 @Mixin(SimpleRegistry.class)
 public abstract class SimpleRegistryMixin<T> implements RemoveFromRegistry<T> {
     @Unique private static final Logger fantasy$LOGGER = LogUtils.getLogger();
-
     @Shadow @Final private Map<T, RegistryEntry.Reference<T>> valueToEntry;
-
     @Shadow @Final private Map<Identifier, RegistryEntry.Reference<T>> idToEntry;
-
     @Shadow @Final private Map<RegistryKey<T>, RegistryEntry.Reference<T>> keyToEntry;
-
-    // @Shadow @Final private Map<T, Lifecycle> entryToLifecycle;
     @Shadow @Final private Map<RegistryKey<T>, RegistryEntryInfo> keyToEntryInfo;
-
     @Shadow @Final private ObjectList<RegistryEntry.Reference<T>> rawIdToEntry;
-
     @Shadow @Final private Reference2IntMap<T> entryToRawId;
-
     @Shadow private boolean frozen;
 
     //@Shadow @Nullable private List<RegistryEntry.Reference<T>> cachedEntries;
@@ -50,11 +42,12 @@ public abstract class SimpleRegistryMixin<T> implements RemoveFromRegistry<T> {
         }
 
         try {
-            this.rawIdToEntry.set(rawId, null);
-            this.idToEntry.remove(registryEntry.registryKey().getValue());
             this.keyToEntry.remove(registryEntry.registryKey());
-            this.keyToEntryInfo.remove(this.key);
+            this.idToEntry.remove(registryEntry.registryKey().getValue());
             this.valueToEntry.remove(entry);
+            this.rawIdToEntry.remove(rawId);
+            this.entryToRawId.removeInt(rawId);
+            this.keyToEntryInfo.remove(this.key);
             /*if (this.cachedEntries != null) {
                 this.cachedEntries.remove(registryEntry);
             }*/
