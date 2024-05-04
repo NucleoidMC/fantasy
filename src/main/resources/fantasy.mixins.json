@@ -10,8 +10,8 @@
     "ServerWorldMixin",
     "ThreadedAnvilChunkStorageMixin",
     "registry.DimensionOptionsMixin",
-    "registry.DimensionOptionsRegistryHolderMixin",
-    "registry.SimpleRegistryMixin"
+    "registry.SimpleRegistryMixin",
+    "registry.WorldGenSettingsMixin"
   ],
   "injectors": {
     "defaultRequire": 1
