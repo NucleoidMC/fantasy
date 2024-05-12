@@ -30,6 +30,7 @@ public final class RuntimeWorldConfig {
     private Difficulty difficulty = Difficulty.NORMAL;
     private final GameRuleStore gameRules = new GameRuleStore();
     private boolean mirrorOverworldGameRules = false;
+    private boolean mirrorOverworldDifficulty = false;
     private RuntimeWorld.Constructor worldConstructor = RuntimeWorld::new;
 
     private int sunnyTime = Integer.MAX_VALUE;
@@ -204,6 +205,18 @@ public final class RuntimeWorldConfig {
     }
 
     /**
+     * Defines if the world should follow the overworld difficulty or not
+     *
+     * @param mirror Whenever it should mirror or not
+     *
+     * @return The same instance of RuntimeWorldConfig
+     */
+    public RuntimeWorldConfig setMirrorOverworldDifficulty(boolean mirror) {
+        this.mirrorOverworldDifficulty = mirror;
+        return this;
+    }
+
+    /**
      * Modifies the weather to sunny
      *
      * @param sunnyTime For how many ticks it should be sunny
@@ -336,16 +349,34 @@ public final class RuntimeWorldConfig {
         return this.timeOfDay;
     }
 
+    /**
+     * Gets the current configured difficulty
+     * <br/>
+     * <b>It may not reflect the real difficulty, also check </b>{@link RuntimeWorldConfig#shouldMirrorOverworldDifficulty()}
+     *
+     * @return The current difficulty stored in the config
+     */
     public Difficulty getDifficulty() {
         return this.difficulty;
     }
 
+    /**
+     * Gets the current configured gamerules
+     * <br/>
+     * <b>It may not reflect the real gamerules, also check </b>{@link RuntimeWorldConfig#shouldMirrorOverworldGameRules()}
+     *
+     * @return The current gamerules stored in the config
+     */
     public GameRuleStore getGameRules() {
         return this.gameRules;
     }
 
-    public boolean shouldMirrorOverworldGameRules(){
+    public boolean shouldMirrorOverworldGameRules() {
         return this.mirrorOverworldGameRules;
+    }
+
+    public boolean shouldMirrorOverworldDifficulty() {
+        return this.mirrorOverworldDifficulty;
     }
 
     public int getSunnyTime() {

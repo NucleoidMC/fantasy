@@ -19,8 +19,9 @@ public final class RuntimeWorldProperties extends UnmodifiableLevelProperties {
 
     @Override
     public GameRules getGameRules() {
-        if (this.config.shouldMirrorOverworldGameRules())
+        if (this.config.shouldMirrorOverworldGameRules()) {
             return super.getGameRules();
+        }
         return this.rules;
     }
 
@@ -86,6 +87,9 @@ public final class RuntimeWorldProperties extends UnmodifiableLevelProperties {
 
     @Override
     public Difficulty getDifficulty() {
+        if (this.config.shouldMirrorOverworldDifficulty()) {
+            return super.getDifficulty();
+        }
         return this.config.getDifficulty();
     }
 }
