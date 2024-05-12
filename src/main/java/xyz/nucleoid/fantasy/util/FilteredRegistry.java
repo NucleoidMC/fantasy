@@ -34,17 +34,17 @@ public class FilteredRegistry<T> extends SimpleRegistry<T> {
     @Nullable
     @Override
     public Identifier getId(T value) {
-        return check.test(value) ? this.source.getId(value) : null;
+        return this.check.test(value) ? this.source.getId(value) : null;
     }
 
     @Override
     public Optional<RegistryKey<T>> getKey(T entry) {
-        return check.test(entry) ? this.source.getKey(entry) : Optional.empty();
+        return this.check.test(entry) ? this.source.getKey(entry) : Optional.empty();
     }
 
     @Override
     public int getRawId(@Nullable T value) {
-        return check.test(value) ? this.source.getRawId(value) : -1;
+        return this.check.test(value) ? this.source.getRawId(value) : -1;
     }
 
     @Nullable
@@ -67,12 +67,7 @@ public class FilteredRegistry<T> extends SimpleRegistry<T> {
     @Nullable
     @Override
     public T get(@Nullable Identifier id) {
-        return this.get(id);
-    }
-
-    @Override
-    public Lifecycle getEntryLifecycle(T entry) {
-        return this.source.getEntryLifecycle(entry);
+        return this.source.get(id);
     }
 
     @Override
@@ -82,7 +77,7 @@ public class FilteredRegistry<T> extends SimpleRegistry<T> {
 
     @Override
     public Set<Identifier> getIds() {
-        return this.getIds();
+        return this.source.getIds();
     }
 
     @Override
@@ -174,6 +169,6 @@ public class FilteredRegistry<T> extends SimpleRegistry<T> {
     @NotNull
     @Override
     public Iterator<T> iterator() {
-        return Iterators.filter(this.source.iterator(), e -> this.check.test(e));
+        return Iterators.filter(this.source.iterator(), this.check::test);
     }
 }

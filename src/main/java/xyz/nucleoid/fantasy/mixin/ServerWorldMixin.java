@@ -19,6 +19,7 @@ import java.util.function.BooleanSupplier;
 
 @Mixin(ServerWorld.class)
 public abstract class ServerWorldMixin implements FantasyWorldAccess {
+    @Unique
     private static final int TICK_TIMEOUT = 20 * 15;
 
     @Unique
@@ -53,6 +54,7 @@ public abstract class ServerWorldMixin implements FantasyWorldAccess {
         return shouldTick || this.fantasy$tickTimeout > 0;
     }
 
+    @Unique
     private boolean isWorldEmpty() {
         return this.getPlayers().isEmpty() && this.getChunkManager().getLoadedChunkCount() <= 0;
     }

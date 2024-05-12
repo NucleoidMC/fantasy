@@ -1,10 +1,10 @@
 plugins {
-  id 'fabric-loom' version '1.4.+'
+  id 'fabric-loom' version '1.6.+'
   id 'maven-publish'
 }
 
-sourceCompatibility = JavaVersion.VERSION_17
-targetCompatibility = JavaVersion.VERSION_17
+sourceCompatibility = JavaVersion.VERSION_21
+targetCompatibility = JavaVersion.VERSION_21
 
 archivesBaseName = project.archives_base_name
 version = project.mod_version + "+" + project.minecraft_version
@@ -47,8 +47,6 @@ dependencies {
 
   modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 
-  modLocalRuntime "eu.pb4:polymer-reg-sync-manipulator:0.7.0+1.20.3-rc1"
-
   testmodImplementation sourceSets.main.output
 }
 
@@ -62,7 +60,7 @@ processResources {
 
 tasks.withType(JavaCompile).configureEach {
   it.options.encoding = "UTF-8"
-  it.options.release = 17
+  it.options.release = 21
 }
 
 java {
