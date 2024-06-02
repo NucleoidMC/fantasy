@@ -11,13 +11,10 @@ import org.spongepowered.asm.mixin.injection.At;
 import xyz.nucleoid.fantasy.util.ChunkGeneratorSettingsProvider;
 
 @Mixin(ServerChunkLoadingManager.class)
-public class ServerChunkLoadingManagerMixin {
+public abstract class ServerChunkLoadingManagerMixin {
 
     @Shadow
-    private ChunkGenerator getChunkGenerator() {
-    	// Shadowed Method
-    	return null;
-    }
+    public abstract ChunkGenerator getChunkGenerator();
 
     @WrapOperation(method = "<init>", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/gen/chunk/ChunkGeneratorSettings;createMissingSettings()Lnet/minecraft/world/gen/chunk/ChunkGeneratorSettings;"))
     private ChunkGeneratorSettings fantasy$useProvidedChunkGeneratorSettings(Operation<ChunkGeneratorSettings> original) {
