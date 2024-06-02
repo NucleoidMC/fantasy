@@ -8,7 +8,7 @@
     "MinecraftServerMixin",
     "ServerChunkManagerMixin",
     "ServerWorldMixin",
-    "ThreadedAnvilChunkStorageMixin",
+    "ServerChunkLoadingManagerMixin",
     "registry.DimensionOptionsMixin",
     "registry.SimpleRegistryMixin",
     "registry.WorldGenSettingsMixin"
