@@ -103,17 +103,24 @@ public class VoidChunkGenerator extends ChunkGenerator {
     }
 
     public VoidChunkGenerator(Registry<Biome> biomeRegistry, RegistryKey<Biome> biome) {
-        this(biomeRegistry.getEntry(biome).get());
+        this(biomeRegistry.getEntry(biome).orElseThrow());
     }
 
     // Create an empty (void) world!
     public VoidChunkGenerator(MinecraftServer server) {
         this(server.getRegistryManager().get(RegistryKeys.BIOME), BiomeKeys.THE_VOID);
     }
+
     // Create a world with a given Biome (as an ID)
     public VoidChunkGenerator(MinecraftServer server, Identifier biome) {
-        this(server.getRegistryManager().get(RegistryKeys.BIOME), RegistryKey.of(RegistryKeys.BIOME, biome));
+        this(server, RegistryKey.of(RegistryKeys.BIOME, biome));
     }
+
+    // Create a world with a given Biome (as a RegistryKey)
+    public VoidChunkGenerator(MinecraftServer server, RegistryKey<Biome> biome) {
+        this(server.getRegistryManager().get(RegistryKeys.BIOME), biome);
+    }
+
     @Override
     protected MapCodec<? extends ChunkGenerator> getCodec() {
         return CODEC;
