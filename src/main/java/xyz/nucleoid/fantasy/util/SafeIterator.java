@@ -1,8 +1,11 @@
 package xyz.nucleoid.fantasy.util;
 
+import org.jetbrains.annotations.ApiStatus;
+
 import java.util.Collection;
 import java.util.Iterator;
 
+@ApiStatus.Internal
 public final class SafeIterator<T> implements Iterator<T> {
     private final Object[] values;
     private int index = 0;
