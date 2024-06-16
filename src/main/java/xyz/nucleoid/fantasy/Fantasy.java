@@ -37,7 +37,7 @@ import java.util.Set;
 public final class Fantasy {
     public static final Logger LOGGER = LogManager.getLogger(Fantasy.class);
     public static final String ID = "fantasy";
-    public static final RegistryKey<DimensionType> DEFAULT_DIM_TYPE = RegistryKey.of(RegistryKeys.DIMENSION_TYPE, new Identifier(Fantasy.ID, "default"));
+    public static final RegistryKey<DimensionType> DEFAULT_DIM_TYPE = RegistryKey.of(RegistryKeys.DIMENSION_TYPE, Identifier.of(Fantasy.ID, "default"));
 
     private static Fantasy instance;
 
@@ -249,6 +249,6 @@ public final class Fantasy {
 
     private static Identifier generateTemporaryWorldKey() {
         String key = RandomStringUtils.random(16, "abcdefghijklmnopqrstuvwxyz0123456789");
-        return new Identifier(Fantasy.ID, key);
+        return Identifier.of(Fantasy.ID, key);
     }
 }
