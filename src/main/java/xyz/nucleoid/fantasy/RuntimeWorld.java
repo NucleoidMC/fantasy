@@ -8,6 +8,7 @@ import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.ProgressListener;
 import net.minecraft.util.Util;
 import net.minecraft.util.math.random.RandomSequencesState;
+import net.minecraft.world.GameRules;
 import net.minecraft.world.World;
 import net.minecraft.world.biome.source.BiomeAccess;
 import net.minecraft.world.dimension.DimensionOptions;
@@ -58,6 +59,15 @@ public class RuntimeWorld extends ServerWorld {
     public void save(@Nullable ProgressListener progressListener, boolean flush, boolean enabled) {
         if (this.style == Style.PERSISTENT || !flush) {
             super.save(progressListener, flush, enabled);
+        }
+    }
+
+    @Override
+    protected void tickTime() {
+        if (this.shouldTickTime) {
+            if (this.properties.getGameRules().getBoolean(GameRules.DO_DAYLIGHT_CYCLE)) {
+                this.setTimeOfDay(this.properties.getTimeOfDay() + 1L);
+            }
         }
     }
 

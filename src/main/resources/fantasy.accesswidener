@@ -3,3 +3,4 @@ accessWidener v1 named
 accessible class net/minecraft/server/world/ServerChunkLoadingManager$EntityTracker
 
 accessible field net/minecraft/world/GameRules$IntRule value I
+accessible field net/minecraft/server/world/ServerWorld shouldTickTime Z
