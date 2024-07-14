@@ -10,8 +10,11 @@ import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Vec3d;
-import net.minecraft.util.profiler.Profiler;
 import net.minecraft.world.TeleportTarget;
+import net.minecraft.world.biome.BiomeKeys;
+import net.minecraft.world.dimension.DimensionTypes;
+import net.minecraft.world.gen.chunk.FlatChunkGenerator;
+import net.minecraft.world.gen.chunk.FlatChunkGeneratorConfig;
 import org.slf4j.Logger;
 import xyz.nucleoid.fantasy.Fantasy;
 import xyz.nucleoid.fantasy.RuntimeWorldConfig;
@@ -19,7 +22,8 @@ import xyz.nucleoid.fantasy.RuntimeWorldHandle;
 import xyz.nucleoid.fantasy.util.VoidChunkGenerator;
 
 import java.util.HashMap;
-import java.util.WeakHashMap;
+import java.util.List;
+import java.util.Optional;
 
 import static net.minecraft.server.command.CommandManager.argument;
 import static net.minecraft.server.command.CommandManager.literal;
@@ -38,6 +42,15 @@ public final class FantasyInitializer implements ModInitializer {
             Fantasy.get(s).openTemporaryWorld(
                     new RuntimeWorldConfig().setGenerator(s.getOverworld().getChunkManager().getChunkGenerator()).setWorldConstructor(CustomWorld::new)
             );
+
+            var biome = s.getRegistryManager().get(RegistryKeys.BIOME).getEntry(s.getRegistryManager().get(RegistryKeys.BIOME).getOrThrow(BiomeKeys.PLAINS));
+            FlatChunkGeneratorConfig flat = new FlatChunkGeneratorConfig(Optional.empty(), biome, List.of());
+            FlatChunkGenerator generator = new FlatChunkGenerator(flat);
+
+            Fantasy.get(s).openTemporaryWorld(new RuntimeWorldConfig()
+                    .setDimensionType(DimensionTypes.OVERWORLD)
+                    .setGenerator(generator)
+                    .setShouldTickTime(true));
         });
 
         CommandRegistrationCallback.EVENT.register(((dispatcher, registryAccess, environment) -> {
