@@ -62,6 +62,9 @@ public class RuntimeWorld extends ServerWorld {
         }
     }
 
+    /**
+    * Only use the time update code from super as the immutable world proerties runtime dimensions breaks scheduled functions
+    */
     @Override
     protected void tickTime() {
         if (this.shouldTickTime) {
