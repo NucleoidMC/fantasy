@@ -8,7 +8,13 @@ import java.util.function.Predicate;
 @ApiStatus.Internal
 public interface FantasyDimensionOptions {
     Predicate<DimensionOptions> SAVE_PREDICATE = (e) -> ((FantasyDimensionOptions) (Object) e).fantasy$getSave();
-    Predicate<DimensionOptions> SAVE_PROPERTIES_PREDICATE = (e) -> ((FantasyDimensionOptions) (Object) e).fantasy$getSaveProperties();
+    Predicate<DimensionOptions> SAVE_PROPERTIES_PREDICATE = (e) -> {
+        boolean test = false;
+        if (e != null) {
+            test = ((FantasyDimensionOptions) (Object) e).fantasy$getSaveProperties();
+        }
+        return test;
+    };
 
     void fantasy$setSave(boolean value);
     boolean fantasy$getSave();
