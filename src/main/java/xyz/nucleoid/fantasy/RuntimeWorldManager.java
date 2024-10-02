@@ -57,7 +57,7 @@ final class RuntimeWorldManager {
         return world;
     }
 
-    void delete(ServerWorld world) {
+    void delete(ServerWorld world, boolean logDeletionFailure) {
         RegistryKey<World> dimensionKey = world.getRegistryKey();
 
         if (this.serverAccess.getWorlds().remove(dimensionKey, world)) {
@@ -72,7 +72,10 @@ final class RuntimeWorldManager {
                 try {
                     FileUtils.deleteDirectory(worldDirectory);
                 } catch (IOException e) {
-                    Fantasy.LOGGER.warn("Failed to delete world directory", e);
+                    if (logDeletionFailure) {
+                        Fantasy.LOGGER.warn("Failed to delete world directory", e);
+                    }
+
                     try {
                         FileUtils.forceDeleteOnExit(worldDirectory);
                     } catch (IOException ignored) {
@@ -80,6 +83,10 @@ final class RuntimeWorldManager {
                 }
             }
         }
+    }
+
+    void delete(ServerWorld world) {
+        this.delete(world, true);
     }
 
     void unload(ServerWorld world) {
