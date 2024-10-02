@@ -49,6 +49,8 @@ public final class Fantasy {
     private final Set<ServerWorld> deletionQueue = new ReferenceOpenHashSet<>();
     private final Set<ServerWorld> unloadingQueue = new ReferenceOpenHashSet<>();
 
+    private static boolean logWorldDeletionFailure = true;
+
     static {
         ServerTickEvents.START_SERVER_TICK.register(server -> {
             Fantasy fantasy = get(server);
@@ -82,6 +84,21 @@ public final class Fantasy {
         }
 
         return instance;
+    }
+
+    /**
+     * Disables logging when a runtime world fails to delete.
+     * @see RuntimeWorldManager#delete(ServerWorld)
+     */
+    public static void disableWorldDeletionFailureLog() {
+        Fantasy.logWorldDeletionFailure = false;
+    }
+
+    /**
+     * Whether a warning should be logged when runtime world deletion fails.
+     */
+    public static boolean shouldLogWorldDeletionFailure() {
+        return Fantasy.logWorldDeletionFailure;
     }
 
     private void tick() {
