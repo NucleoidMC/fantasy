@@ -13,7 +13,7 @@ public final class RuntimeWorldProperties extends UnmodifiableLevelProperties {
         super(saveProperties, saveProperties.getMainWorldProperties());
         this.config = config;
 
-        this.rules = new GameRules();
+        this.rules = new GameRules(saveProperties.getEnabledFeatures());
         config.getGameRules().applyTo(this.rules, null);
     }
 

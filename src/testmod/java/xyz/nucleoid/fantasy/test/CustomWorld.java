@@ -1,6 +1,6 @@
 package xyz.nucleoid.fantasy.test;
 
-import net.minecraft.recipe.RecipeManager;
+import net.minecraft.recipe.ServerRecipeManager;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.World;
@@ -11,11 +11,11 @@ import java.util.function.BooleanSupplier;
 
 public class CustomWorld extends RuntimeWorld {
     private long dynSeed;
-    private final RecipeManager recipeManager;
+    private final ServerRecipeManager recipeManager;
 
     protected CustomWorld(MinecraftServer server, RegistryKey<World> registryKey, RuntimeWorldConfig config, Style style) {
         super(server, registryKey, config, style);
-        this.recipeManager = new RecipeManager(server.getRegistryManager());
+        this.recipeManager = new ServerRecipeManager(server.getRegistryManager());
     }
 
 
@@ -26,7 +26,7 @@ public class CustomWorld extends RuntimeWorld {
     }
 
     @Override
-    public RecipeManager getRecipeManager() {
+    public ServerRecipeManager getRecipeManager() {
         return this.recipeManager;
     }
 

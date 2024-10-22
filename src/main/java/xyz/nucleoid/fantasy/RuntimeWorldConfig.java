@@ -326,7 +326,7 @@ public final class RuntimeWorldConfig {
     private RegistryEntry<DimensionType> resolveDimensionType(MinecraftServer server) {
         var dimensionType = this.dimensionType;
         if (dimensionType == null) {
-            dimensionType = server.getRegistryManager().get(RegistryKeys.DIMENSION_TYPE).getEntry(this.dimensionTypeKey).orElse(null);
+            dimensionType = server.getRegistryManager().getOrThrow(RegistryKeys.DIMENSION_TYPE).getOptional(this.dimensionTypeKey).orElse(null);
             Preconditions.checkNotNull(dimensionType, "invalid dimension type " + this.dimensionTypeKey);
         }
         return dimensionType;

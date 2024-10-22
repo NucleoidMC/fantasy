@@ -112,6 +112,6 @@ final class RuntimeWorldManager {
 
     private static SimpleRegistry<DimensionOptions> getDimensionsRegistry(MinecraftServer server) {
         DynamicRegistryManager registryManager = server.getCombinedDynamicRegistries().getCombinedRegistryManager();
-        return (SimpleRegistry<DimensionOptions>) registryManager.get(RegistryKeys.DIMENSION);
+        return (SimpleRegistry<DimensionOptions>) registryManager.getOrThrow(RegistryKeys.DIMENSION);
     }
 }

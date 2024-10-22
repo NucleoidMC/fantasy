@@ -11,6 +11,8 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Vec3d;
+import net.minecraft.world.TeleportTarget;
 import net.minecraft.world.World;
 import net.minecraft.world.dimension.DimensionType;
 import net.minecraft.world.level.storage.LevelStorage;
@@ -217,8 +219,12 @@ public final class Fantasy {
         float spawnAngle = overworld.getSpawnAngle();
 
         List<ServerPlayerEntity> players = new ArrayList<>(world.getPlayers());
+
+        Vec3d pos = new Vec3d(spawnPos.getX() + 0.5, spawnPos.getY(), spawnPos.getZ() + 0.5);
+        TeleportTarget target = new TeleportTarget(overworld, pos, Vec3d.ZERO, spawnAngle, 0.0F, TeleportTarget.NO_OP);
+
         for (ServerPlayerEntity player : players) {
-            player.teleport(overworld, spawnPos.getX() + 0.5, spawnPos.getY(), spawnPos.getZ() + 0.5, spawnAngle, 0.0F);
+            player.teleportTo(target);
         }
     }
 

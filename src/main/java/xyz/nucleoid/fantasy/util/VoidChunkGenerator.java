@@ -29,7 +29,6 @@ import net.minecraft.world.biome.source.BiomeAccess;
 import net.minecraft.world.biome.source.FixedBiomeSource;
 import net.minecraft.world.biome.source.util.MultiNoiseUtil;
 import net.minecraft.world.chunk.Chunk;
-import net.minecraft.world.gen.GenerationStep;
 import net.minecraft.world.gen.StructureAccessor;
 import net.minecraft.world.gen.chunk.Blender;
 import net.minecraft.world.gen.chunk.ChunkGenerator;
@@ -103,12 +102,12 @@ public class VoidChunkGenerator extends ChunkGenerator {
     }
 
     public VoidChunkGenerator(Registry<Biome> biomeRegistry, RegistryKey<Biome> biome) {
-        this(biomeRegistry.getEntry(biome).orElseThrow());
+        this(biomeRegistry.getOptional(biome).orElseThrow());
     }
 
     // Create an empty (void) world!
     public VoidChunkGenerator(MinecraftServer server) {
-        this(server.getRegistryManager().get(RegistryKeys.BIOME), BiomeKeys.THE_VOID);
+        this(server.getRegistryManager().getOrThrow(RegistryKeys.BIOME), BiomeKeys.THE_VOID);
     }
 
     // Create a world with a given Biome (as an ID)
@@ -118,7 +117,7 @@ public class VoidChunkGenerator extends ChunkGenerator {
 
     // Create a world with a given Biome (as a RegistryKey)
     public VoidChunkGenerator(MinecraftServer server, RegistryKey<Biome> biome) {
-        this(server.getRegistryManager().get(RegistryKeys.BIOME), biome);
+        this(server.getRegistryManager().getOrThrow(RegistryKeys.BIOME), biome);
     }
 
     @Override
@@ -131,7 +130,7 @@ public class VoidChunkGenerator extends ChunkGenerator {
     }
 
     @Override
-    public void carve(ChunkRegion chunkRegion, long seed, NoiseConfig noiseConfig, BiomeAccess world, StructureAccessor structureAccessor, Chunk chunk, GenerationStep.Carver carverStep) {
+    public void carve(ChunkRegion chunkRegion, long seed, NoiseConfig noiseConfig, BiomeAccess world, StructureAccessor structureAccessor, Chunk chunk) {
 
     }
 
@@ -165,7 +164,7 @@ public class VoidChunkGenerator extends ChunkGenerator {
     }
 
     @Override
-    public void getDebugHudText(List<String> text, NoiseConfig noiseConfig, BlockPos pos) {
+    public void appendDebugHudText(List<String> text, NoiseConfig noiseConfig, BlockPos pos) {
 
     }
 

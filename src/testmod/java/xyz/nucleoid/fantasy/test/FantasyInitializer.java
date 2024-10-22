@@ -36,14 +36,14 @@ public final class FantasyInitializer implements ModInitializer {
     public void onInitialize() {
         ServerLifecycleEvents.SERVER_STARTED.register((s) -> {
             Fantasy.get(s).openTemporaryWorld(
-                    new RuntimeWorldConfig().setGenerator(new VoidChunkGenerator(s.getRegistryManager().get(RegistryKeys.BIOME).getEntry(0).get())).setWorldConstructor(CustomWorld::new)
+                    new RuntimeWorldConfig().setGenerator(new VoidChunkGenerator(s.getRegistryManager().getOrThrow(RegistryKeys.BIOME).getEntry(0).get())).setWorldConstructor(CustomWorld::new)
             );
 
             Fantasy.get(s).openTemporaryWorld(
                     new RuntimeWorldConfig().setGenerator(s.getOverworld().getChunkManager().getChunkGenerator()).setWorldConstructor(CustomWorld::new)
             );
 
-            var biome = s.getRegistryManager().get(RegistryKeys.BIOME).getEntry(s.getRegistryManager().get(RegistryKeys.BIOME).getOrThrow(BiomeKeys.PLAINS));
+            var biome = s.getRegistryManager().getOrThrow(RegistryKeys.BIOME).getOrThrow(BiomeKeys.PLAINS);
             FlatChunkGeneratorConfig flat = new FlatChunkGeneratorConfig(Optional.empty(), biome, List.of());
             FlatChunkGenerator generator = new FlatChunkGenerator(flat);
 
