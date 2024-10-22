@@ -68,7 +68,7 @@ public class RuntimeWorld extends ServerWorld {
     @Override
     protected void tickTime() {
         if (this.shouldTickTime) {
-            if (this.properties.getGameRules().getBoolean(GameRules.DO_DAYLIGHT_CYCLE)) {
+            if (this.getGameRules().getBoolean(GameRules.DO_DAYLIGHT_CYCLE)) {
                 this.setTimeOfDay(this.properties.getTimeOfDay() + 1L);
             }
         }
