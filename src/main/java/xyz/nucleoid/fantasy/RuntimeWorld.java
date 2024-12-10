@@ -32,7 +32,7 @@ public class RuntimeWorld extends ServerWorld {
                 new RuntimeWorldProperties(server.getSaveProperties(), config),
                 registryKey,
                 config.createDimensionOptions(server),
-                VoidWorldProgressListener.INSTANCE,
+                config.getWorldGenerationProgressListener(),
                 false,
                 BiomeAccess.hashSeed(config.getSeed()),
                 ImmutableList.of(),
@@ -42,7 +42,6 @@ public class RuntimeWorld extends ServerWorld {
         this.style = style;
         this.flat = config.isFlat().orElse(super.isFlat());
     }
-
 
     protected RuntimeWorld(MinecraftServer server, Executor workerExecutor, LevelStorage.Session session, ServerWorldProperties properties, RegistryKey<World> worldKey, DimensionOptions dimensionOptions, WorldGenerationProgressListener worldGenerationProgressListener, boolean debugWorld, long seed, List<SpecialSpawner> spawners, boolean shouldTickTime, @Nullable RandomSequencesState randomSequencesState, Style style) {
         super(server, workerExecutor, session, properties, worldKey, dimensionOptions, worldGenerationProgressListener, debugWorld, seed, spawners, shouldTickTime, randomSequencesState);

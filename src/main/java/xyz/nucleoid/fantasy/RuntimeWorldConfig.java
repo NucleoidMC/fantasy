@@ -6,6 +6,7 @@ import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
 import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.WorldGenerationProgressListener;
 import net.minecraft.world.Difficulty;
 import net.minecraft.world.GameRules;
 import net.minecraft.world.dimension.DimensionOptions;
@@ -13,6 +14,7 @@ import net.minecraft.world.dimension.DimensionType;
 import net.minecraft.world.gen.chunk.ChunkGenerator;
 import org.jetbrains.annotations.Nullable;
 import xyz.nucleoid.fantasy.util.GameRuleStore;
+import xyz.nucleoid.fantasy.util.VoidWorldProgressListener;
 
 /**
  * A configuration describing how a runtime world should be constructed. This includes properties such as the dimension
@@ -32,6 +34,7 @@ public final class RuntimeWorldConfig {
     private boolean mirrorOverworldGameRules = false;
     private boolean mirrorOverworldDifficulty = false;
     private RuntimeWorld.Constructor worldConstructor = RuntimeWorld::new;
+    private WorldGenerationProgressListener worldGenerationProgressListener = VoidWorldProgressListener.INSTANCE;
 
     private int sunnyTime = Integer.MAX_VALUE;
     private boolean raining;
@@ -401,5 +404,13 @@ public final class RuntimeWorldConfig {
 
     public TriState isFlat() {
         return this.flat;
+    }
+
+    public WorldGenerationProgressListener getWorldGenerationProgressListener() {
+        return this.worldGenerationProgressListener;
+    }
+
+    public void setWorldGenerationProgressListener(WorldGenerationProgressListener listener) {
+        this.worldGenerationProgressListener = listener;
     }
 }
