@@ -155,6 +155,7 @@ public final class Fantasy {
             world = this.addPersistentWorld(key, config);
         } else {
             this.deletionQueue.remove(world);
+            this.unloadingQueue.remove(world);
         }
 
         return new RuntimeWorldHandle(this, world);
@@ -178,29 +179,37 @@ public final class Fantasy {
     }
 
     void enqueueWorldDeletion(ServerWorld world) {
-        this.server.submit(() -> {
+        this.server.execute(() -> {
+            world.getChunkManager().removePersistentTickets();
+            world.savingDisabled = true;
+            this.kickPlayers(world);
             this.deletionQueue.add(world);
         });
     }
 
     void enqueueWorldUnloading(ServerWorld world) {
-        this.server.submit(() -> {
+        this.server.execute(() -> {
+            world.savingDisabled = false;
+            world.getChunkManager().removePersistentTickets();
+            world.getChunkManager().tick(() -> true, false);
+            this.kickPlayers(world);
             this.unloadingQueue.add(world);
         });
     }
 
     public boolean tickDeleteWorld(ServerWorld world) {
-        if (this.isWorldUnloaded(world)) {
-            this.worldManager.delete(world);
-            return true;
-        } else {
-            this.kickPlayers(world);
-            return false;
-        }
+        //if (this.isWorldActive(world)) {
+        this.kickPlayers(world);
+        this.worldManager.delete(world);
+        return true;
+        //} else {
+        //    this.kickPlayers(world);
+        //    return false;
+        //}
     }
 
     public boolean tickUnloadWorld(ServerWorld world) {
-        if (this.isWorldUnloaded(world)) {
+        if (this.isWorldActive(world) && !world.getChunkManager().chunkLoadingManager.shouldDelayShutdown()) {
             this.worldManager.unload(world);
             return true;
         } else {
@@ -228,7 +237,7 @@ public final class Fantasy {
         }
     }
 
-    private boolean isWorldUnloaded(ServerWorld world) {
+    private boolean isWorldActive(ServerWorld world) {
         return world.getPlayers().isEmpty() && world.getChunkManager().getLoadedChunkCount() <= 0;
     }
 
@@ -243,8 +252,7 @@ public final class Fantasy {
     private List<RuntimeWorld> collectTemporaryWorlds() {
         List<RuntimeWorld> temporaryWorlds = new ArrayList<>();
         for (ServerWorld world : this.server.getWorlds()) {
-            if (world instanceof RuntimeWorld) {
-                RuntimeWorld runtimeWorld = (RuntimeWorld) world;
+            if (world instanceof RuntimeWorld runtimeWorld) {
                 if (runtimeWorld.style == RuntimeWorld.Style.TEMPORARY) {
                     temporaryWorlds.add(runtimeWorld);
                 }

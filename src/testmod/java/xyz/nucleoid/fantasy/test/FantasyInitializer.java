@@ -1,5 +1,6 @@
 package xyz.nucleoid.fantasy.test;
 
+import com.mojang.brigadier.arguments.BoolArgumentType;
 import com.mojang.logging.LogUtils;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
@@ -30,7 +31,7 @@ import static net.minecraft.server.command.CommandManager.literal;
 
 public final class FantasyInitializer implements ModInitializer {
     private static final Logger LOGGER = LogUtils.getLogger();
-    private HashMap<Identifier, RuntimeWorldHandle> worlds = new HashMap<>();
+    private final HashMap<Identifier, RuntimeWorldHandle> worlds = new HashMap<>();
 
     @Override
     public void onInitialize() {
@@ -56,41 +57,48 @@ public final class FantasyInitializer implements ModInitializer {
         CommandRegistrationCallback.EVENT.register(((dispatcher, registryAccess, environment) -> {
             dispatcher.register(literal("fantasy_open").then(
                     argument("name", IdentifierArgumentType.identifier())
-                            .executes((context -> {
-                                ServerCommandSource source = context.getSource();
-                                try {
+                            .then(argument("temp", BoolArgumentType.bool())
+                                    .executes((context -> {
+                                        ServerCommandSource source = context.getSource();
+                                        try {
+                                            var temp = BoolArgumentType.getBool(context, "temp");
+                                            var ref = new Object() {
+                                                long t = System.currentTimeMillis();
+                                            };
 
-                                    var ref = new Object() {
-                                        long t = System.currentTimeMillis();
-                                    };
+                                            var id = IdentifierArgumentType.getIdentifier(context, "name");
 
-                                    var id = IdentifierArgumentType.getIdentifier(context, "name");
-
-                                    var x = Fantasy.get(source.getServer()).getOrOpenPersistentWorld(
-                                            id,
-                                            new RuntimeWorldConfig()
+                                            RuntimeWorldHandle x;
+                                            var config = new RuntimeWorldConfig()
                                                     .setGenerator(source.getServer().getOverworld().getChunkManager().getChunkGenerator())
                                                     .setDimensionType(source.getServer().getOverworld().getDimensionEntry())
-                                                    .setSeed(id.hashCode())
-                                    );
+                                                    .setSeed(id.hashCode());
 
-                                    source.sendFeedback(() -> Text.literal("WorldCreate: " + (System.currentTimeMillis() - ref.t)), false);
+                                            if (temp) {
+                                                x = Fantasy.get(source.getServer()).openTemporaryWorld(id, config);
 
-                                    this.worlds.put(id, x);
+                                            } else {
+                                                 x = Fantasy.get(source.getServer()).getOrOpenPersistentWorld(id, config);
+                                            }
 
-                                    ref.t = System.currentTimeMillis();
-                                    if (source.getEntity() != null) {
-                                        source.getEntity().teleportTo(new TeleportTarget(x.asWorld(), new Vec3d(0, 100, 0), Vec3d.ZERO, 0, 0, TeleportTarget.NO_OP));
-                                    }
+                                            source.sendFeedback(() -> Text.literal("WorldCreate: " + (System.currentTimeMillis() - ref.t)), false);
 
-                                    source.sendFeedback(() -> Text.literal("Teleport: " + (System.currentTimeMillis() - ref.t)), false);
-                                    return 1;
-                                } catch (Throwable e) {
-                                    LOGGER.error("Failed to open world", e);
-                                    source.sendError(Text.literal("Failed to open world"));
-                                    return 0;
-                                }
-                            }))
+                                            this.worlds.put(id, x);
+
+                                            ref.t = System.currentTimeMillis();
+                                            if (source.getEntity() != null) {
+                                                source.getEntity().teleportTo(new TeleportTarget(x.asWorld(), new Vec3d(0, 100, 0), Vec3d.ZERO, 0, 0, TeleportTarget.NO_OP));
+                                            }
+
+                                            source.sendFeedback(() -> Text.literal("Teleport: " + (System.currentTimeMillis() - ref.t)), false);
+                                            return 1;
+                                        } catch (Throwable e) {
+                                            LOGGER.error("Failed to open world", e);
+                                            source.sendError(Text.literal("Failed to open world"));
+                                            return 0;
+                                        }
+                                    }))
+                            )
             ));
 
             dispatcher.register(literal("fantasy_delete").then(
