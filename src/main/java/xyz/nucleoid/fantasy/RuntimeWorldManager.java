@@ -62,7 +62,11 @@ final class RuntimeWorldManager {
 
         if (this.serverAccess.getWorlds().remove(dimensionKey, world)) {
             ServerWorldEvents.UNLOAD.invoker().onWorldUnload(this.server, world);
-
+            try {
+                world.close();
+            } catch (IOException e) {
+                Fantasy.LOGGER.warn("Failed to close world resources", e);
+            }
             SimpleRegistry<DimensionOptions> dimensionsRegistry = getDimensionsRegistry(this.server);
             RemoveFromRegistry.remove(dimensionsRegistry, dimensionKey.getValue());
 
@@ -104,7 +108,11 @@ final class RuntimeWorldManager {
             }, true, false);
 
             ServerWorldEvents.UNLOAD.invoker().onWorldUnload(RuntimeWorldManager.this.server, world);
-
+            try {
+                world.close();
+            } catch (IOException e) {
+                Fantasy.LOGGER.warn("Failed to close world resources", e);
+            }
             SimpleRegistry<DimensionOptions> dimensionsRegistry = getDimensionsRegistry(RuntimeWorldManager.this.server);
             RemoveFromRegistry.remove(dimensionsRegistry, dimensionKey.getValue());
         }
