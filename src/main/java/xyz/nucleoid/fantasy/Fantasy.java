@@ -178,9 +178,11 @@ public final class Fantasy {
         return this.worldManager.add(worldKey, config, RuntimeWorld.Style.TEMPORARY);
     }
 
+    /* removePersistentTickets is not present in 1.21.5, and I cannot find a similar replacement ~Dan */
+
     void enqueueWorldDeletion(ServerWorld world) {
         this.server.execute(() -> {
-            world.getChunkManager().removePersistentTickets();
+            // world.getChunkManager().removePersistentTickets();
             world.savingDisabled = true;
             this.kickPlayers(world);
             this.deletionQueue.add(world);
@@ -190,7 +192,7 @@ public final class Fantasy {
     void enqueueWorldUnloading(ServerWorld world) {
         this.server.execute(() -> {
             world.savingDisabled = false;
-            world.getChunkManager().removePersistentTickets();
+            // world.getChunkManager().removePersistentTickets();
             world.getChunkManager().tick(() -> true, false);
             this.kickPlayers(world);
             this.unloadingQueue.add(world);
