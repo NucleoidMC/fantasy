@@ -6,9 +6,10 @@
   "mixins": [
     "MinecraftServerAccess",
     "MinecraftServerMixin",
+    "ServerChunkLoadingManagerMixin",
+    "ServerChunkManagerAccess",
     "ServerChunkManagerMixin",
     "ServerWorldMixin",
-    "ServerChunkLoadingManagerMixin",
     "registry.DimensionOptionsMixin",
     "registry.SimpleRegistryMixin",
     "registry.WorldGenSettingsMixin"

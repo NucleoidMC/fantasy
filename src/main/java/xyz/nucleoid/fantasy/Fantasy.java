@@ -1,6 +1,7 @@
 package xyz.nucleoid.fantasy;
 
 import com.google.common.base.Preconditions;
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
@@ -21,6 +22,7 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import xyz.nucleoid.fantasy.mixin.MinecraftServerAccess;
+import xyz.nucleoid.fantasy.mixin.ServerChunkManagerAccess;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -180,7 +182,7 @@ public final class Fantasy {
 
     void enqueueWorldDeletion(ServerWorld world) {
         this.server.execute(() -> {
-            world.getChunkManager().removePersistentTickets();
+            clearTickets(world);
             world.savingDisabled = true;
             this.kickPlayers(world);
             this.deletionQueue.add(world);
@@ -190,7 +192,7 @@ public final class Fantasy {
     void enqueueWorldUnloading(ServerWorld world) {
         this.server.execute(() -> {
             world.savingDisabled = false;
-            world.getChunkManager().removePersistentTickets();
+            clearTickets(world);
             world.getChunkManager().tick(() -> true, false);
             this.kickPlayers(world);
             this.unloadingQueue.add(world);
@@ -235,6 +237,14 @@ public final class Fantasy {
         for (ServerPlayerEntity player : players) {
             player.teleportTo(target);
         }
+    }
+
+    private static void clearTickets(ServerWorld world) {
+        ServerChunkManagerAccess chunkManager = (ServerChunkManagerAccess) world.getChunkManager();
+        chunkManager.getTicketManager().removeTicketsIf(
+                (chunkTicket) -> true,
+                new Long2ObjectOpenHashMap<>()
+        );
     }
 
     private boolean isWorldActive(ServerWorld world) {
