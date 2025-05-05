@@ -180,7 +180,7 @@ public final class Fantasy {
 
     void enqueueWorldDeletion(ServerWorld world) {
         this.server.execute(() -> {
-            world.getChunkManager().removePersistentTickets();
+            world.getChunkManager().shutdown();
             world.savingDisabled = true;
             this.kickPlayers(world);
             this.deletionQueue.add(world);
@@ -190,7 +190,7 @@ public final class Fantasy {
     void enqueueWorldUnloading(ServerWorld world) {
         this.server.execute(() -> {
             world.savingDisabled = false;
-            world.getChunkManager().removePersistentTickets();
+            world.getChunkManager().shutdown();
             world.getChunkManager().tick(() -> true, false);
             this.kickPlayers(world);
             this.unloadingQueue.add(world);
