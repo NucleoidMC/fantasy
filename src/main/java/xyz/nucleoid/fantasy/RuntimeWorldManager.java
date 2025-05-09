@@ -72,7 +72,10 @@ final class RuntimeWorldManager {
                 try {
                     FileUtils.deleteDirectory(worldDirectory);
                 } catch (IOException e) {
-                    Fantasy.LOGGER.warn("Failed to delete world directory", e);
+                    if (Fantasy.shouldLogWorldDeletionFailure()) {
+                        Fantasy.LOGGER.warn("Failed to delete world directory", e);
+                    }
+
                     try {
                         FileUtils.forceDeleteOnExit(worldDirectory);
                     } catch (IOException ignored) {
