@@ -1,15 +1,14 @@
 plugins {
-  id 'fabric-loom' version '1.10.+'
+  id 'fabric-loom' version "${loom_version}"
   id 'maven-publish'
 }
 
-sourceCompatibility = JavaVersion.VERSION_21
-targetCompatibility = JavaVersion.VERSION_21
-
-archivesBaseName = project.archives_base_name
 version = project.mod_version + "+" + project.minecraft_version
 group = project.maven_group
 
+base {
+  archivesName = project.archives_base_name
+}
 
 sourceSets {
   testmod {
@@ -65,6 +64,9 @@ tasks.withType(JavaCompile).configureEach {
 
 java {
   withSourcesJar()
+
+  sourceCompatibility = JavaVersion.VERSION_21
+  targetCompatibility = JavaVersion.VERSION_21
 }
 
 jar {
@@ -73,7 +75,7 @@ jar {
 
 publishing {
   publications {
-    mavenJava(MavenPublication) {
+    create("mavenJava", MavenPublication) {
       artifact(remapJar) {
         builtBy remapJar
       }
