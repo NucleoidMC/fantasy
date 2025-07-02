@@ -10,7 +10,6 @@ import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.SimpleRegistry;
 import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.registry.entry.RegistryEntryInfo;
-import net.minecraft.registry.entry.RegistryEntryOwner;
 import net.minecraft.util.Identifier;
 import org.slf4j.Logger;
 import org.spongepowered.asm.mixin.Final;
@@ -22,8 +21,6 @@ import xyz.nucleoid.fantasy.RemoveFromRegistry;
 
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
-import java.util.UUID;
 import java.util.stream.Stream;
 
 @Mixin(SimpleRegistry.class)
@@ -36,7 +33,7 @@ public abstract class SimpleRegistryMixin<T> implements RemoveFromRegistry<T>, M
     @Shadow @Final private Map<RegistryKey<T>, RegistryEntryInfo> keyToEntryInfo;
     @Shadow @Final private ObjectList<RegistryEntry.Reference<T>> rawIdToEntry;
     @Shadow @Final private Reference2IntMap<T> entryToRawId;
-    @Shadow @Final RegistryKey<? extends Registry<T>> key;
+    @Shadow @Final private RegistryKey<? extends Registry<T>> key;
     @Shadow private boolean frozen;
 
     @Override
