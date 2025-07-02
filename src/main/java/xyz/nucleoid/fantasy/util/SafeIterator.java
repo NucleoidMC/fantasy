@@ -19,6 +19,7 @@ public final class SafeIterator<T> implements Iterator<T> {
         return this.values.length > this.index;
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public T next() {
         return (T) this.values[this.index++];

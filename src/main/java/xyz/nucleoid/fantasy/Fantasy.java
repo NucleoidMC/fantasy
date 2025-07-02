@@ -262,7 +262,7 @@ public final class Fantasy {
     }
 
     private static Identifier generateTemporaryWorldKey() {
-        String key = RandomStringUtils.random(16, "abcdefghijklmnopqrstuvwxyz0123456789");
+        String key = RandomStringUtils.secure().next(16, "abcdefghijklmnopqrstuvwxyz0123456789");
         return Identifier.of(Fantasy.ID, key);
     }
 }

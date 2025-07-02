@@ -14,7 +14,7 @@ import xyz.nucleoid.fantasy.FantasyWorldAccess;
 public class ServerChunkManagerMixin {
     @Shadow
     @Final
-    ServerWorld world;
+    private ServerWorld world;
 
     @Inject(method = "executeQueuedTasks", at = @At("HEAD"), cancellable = true)
     private void executeQueuedTasks(CallbackInfoReturnable<Boolean> ci) {
