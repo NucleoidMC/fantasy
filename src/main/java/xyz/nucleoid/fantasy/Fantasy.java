@@ -14,6 +14,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.TeleportTarget;
 import net.minecraft.world.World;
+import net.minecraft.world.WorldProperties;
 import net.minecraft.world.dimension.DimensionType;
 import net.minecraft.world.level.storage.LevelStorage;
 import org.apache.commons.io.FileUtils;
@@ -223,16 +224,15 @@ public final class Fantasy {
             return;
         }
 
-        ServerWorld overworld = this.server.getOverworld();
-        BlockPos spawnPos = overworld.getSpawnPos();
-        float spawnAngle = overworld.getSpawnAngle();
+        ServerWorld spawnWorld = this.server.getSpawnWorld();
+        WorldProperties.SpawnPoint spawnPoint = this.server.getSpawnPoint();
 
         List<ServerPlayerEntity> players = new ArrayList<>(world.getPlayers());
 
-        Vec3d pos = new Vec3d(spawnPos.getX() + 0.5, spawnPos.getY(), spawnPos.getZ() + 0.5);
-        TeleportTarget target = new TeleportTarget(overworld, pos, Vec3d.ZERO, spawnAngle, 0.0F, TeleportTarget.NO_OP);
-
         for (ServerPlayerEntity player : players) {
+            Vec3d pos = player.getWorldSpawnPos(spawnWorld, spawnPoint.getPos()).toBottomCenterPos();
+            TeleportTarget target = new TeleportTarget(spawnWorld, pos, Vec3d.ZERO, spawnPoint.yaw(), spawnPoint.pitch(), TeleportTarget.NO_OP);
+
             player.teleportTo(target);
         }
     }
