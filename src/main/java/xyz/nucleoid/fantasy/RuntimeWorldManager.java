@@ -7,6 +7,7 @@ import net.minecraft.registry.RegistryKeys;
 import net.minecraft.registry.SimpleRegistry;
 import net.minecraft.registry.entry.RegistryEntryInfo;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.world.ChunkTicketManager;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
 import net.minecraft.util.ProgressListener;
@@ -47,6 +48,7 @@ final class RuntimeWorldManager {
         ((RemoveFromRegistry<?>) dimensionsRegistry).fantasy$setFrozen(isFrozen);
 
         RuntimeWorld world = config.getWorldConstructor().createWorld(this.server, worldKey, config, style);
+        this.promoteForcedChunksToTickets(world);
 
         this.serverAccess.getWorlds().put(world.getRegistryKey(), world);
         ServerWorldEvents.LOAD.invoker().onWorldLoad(this.server, world);
@@ -55,6 +57,13 @@ final class RuntimeWorldManager {
         world.tick(() -> true);
 
         return world;
+    }
+
+    private void promoteForcedChunksToTickets(ServerWorld world) {
+        ChunkTicketManager chunkTicketManager = world.getPersistentStateManager().get(ChunkTicketManager.STATE_TYPE);
+        if (chunkTicketManager != null) {
+            chunkTicketManager.promoteToRealTickets();
+        }
     }
 
     void delete(ServerWorld world) {
