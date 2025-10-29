@@ -60,6 +60,11 @@ final class RuntimeWorldManager {
     void delete(ServerWorld world) {
         RegistryKey<World> dimensionKey = world.getRegistryKey();
 
+        if (world == server.getOverworld()) {
+            Fantasy.LOGGER.error("Deleting minecraft:overworld is not supported - would delete the whole save");
+            return;
+        }
+
         if (this.serverAccess.getWorlds().remove(dimensionKey, world)) {
             ServerWorldEvents.UNLOAD.invoker().onWorldUnload(this.server, world);
 
