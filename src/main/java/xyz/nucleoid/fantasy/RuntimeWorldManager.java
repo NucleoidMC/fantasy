@@ -49,6 +49,10 @@ final class RuntimeWorldManager {
         RuntimeWorld world = config.getWorldConstructor().createWorld(this.server, worldKey, config, style);
 
         this.serverAccess.getWorlds().put(world.getRegistryKey(), world);
+
+        // setup world border data sender (named poorly in yarn mappings)
+        this.server.getPlayerManager().setMainWorld(world);
+
         ServerWorldEvents.LOAD.invoker().onWorldLoad(this.server, world);
 
         // tick the world to ensure it is ready for use right away
