@@ -7,7 +7,7 @@ import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.ProgressListener;
 import net.minecraft.util.Util;
 import net.minecraft.util.math.random.RandomSequencesState;
-import net.minecraft.world.GameRules;
+import net.minecraft.world.rule.GameRules;
 import net.minecraft.world.World;
 import net.minecraft.world.biome.source.BiomeAccess;
 import net.minecraft.world.dimension.DimensionOptions;
@@ -64,7 +64,7 @@ public class RuntimeWorld extends ServerWorld {
     @Override
     protected void tickTime() {
         if (this.shouldTickTime) {
-            if (this.getGameRules().getBoolean(GameRules.DO_DAYLIGHT_CYCLE)) {
+            if (this.getGameRules().getValue(GameRules.ADVANCE_TIME)) {
                 this.setTimeOfDay(this.properties.getTimeOfDay() + 1L);
             }
         }

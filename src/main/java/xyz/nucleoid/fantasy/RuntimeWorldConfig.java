@@ -7,7 +7,8 @@ import net.minecraft.registry.RegistryKeys;
 import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.Difficulty;
-import net.minecraft.world.GameRules;
+import net.minecraft.world.rule.GameRule;
+import net.minecraft.world.rule.GameRules;
 import net.minecraft.world.dimension.DimensionOptions;
 import net.minecraft.world.dimension.DimensionType;
 import net.minecraft.world.gen.chunk.ChunkGenerator;
@@ -134,7 +135,7 @@ public final class RuntimeWorldConfig {
      */
     public RuntimeWorldConfig setShouldTickTime(boolean shouldTickTime) {
         this.shouldTickTime = shouldTickTime;
-        this.gameRules.set(GameRules.DO_DAYLIGHT_CYCLE, shouldTickTime);
+        this.gameRules.set(GameRules.ADVANCE_TIME, shouldTickTime);
         return this;
     }
 
@@ -172,7 +173,7 @@ public final class RuntimeWorldConfig {
      *
      * @return The same instance of RuntimeWorldConfig
      */
-    public RuntimeWorldConfig setGameRule(GameRules.Key<GameRules.BooleanRule> key, boolean value) {
+    public RuntimeWorldConfig setGameRule(GameRule<Boolean> key, boolean value) {
         this.gameRules.set(key, value);
         return this;
     }
@@ -187,7 +188,7 @@ public final class RuntimeWorldConfig {
      *
      * @return The same instance of RuntimeWorldConfig
      */
-    public RuntimeWorldConfig setGameRule(GameRules.Key<GameRules.IntRule> key, int value) {
+    public RuntimeWorldConfig setGameRule(GameRule<Integer> key, int value) {
         this.gameRules.set(key, value);
         return this;
     }

@@ -1,7 +1,7 @@
 package xyz.nucleoid.fantasy;
 
 import net.minecraft.world.Difficulty;
-import net.minecraft.world.GameRules;
+import net.minecraft.world.rule.GameRules;
 import net.minecraft.world.SaveProperties;
 import net.minecraft.world.level.UnmodifiableLevelProperties;
 
