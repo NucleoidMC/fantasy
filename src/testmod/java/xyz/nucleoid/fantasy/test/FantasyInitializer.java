@@ -1,27 +1,31 @@
 package xyz.nucleoid.fantasy.test;
 
 import com.mojang.brigadier.arguments.BoolArgumentType;
+import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.logging.LogUtils;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.minecraft.commands.arguments.IdentifierArgument;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.data.worldgen.DimensionTypes;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
+import net.minecraft.util.datafix.DataFixers;
 import net.minecraft.world.level.biome.Biomes;
 import net.minecraft.world.level.dimension.BuiltinDimensionTypes;
 import net.minecraft.world.level.levelgen.FlatLevelSource;
 import net.minecraft.world.level.levelgen.flat.FlatLevelGeneratorSettings;
 import net.minecraft.world.level.portal.TeleportTransition;
+import net.minecraft.world.level.validation.DirectoryValidator;
 import net.minecraft.world.phys.Vec3;
 import org.slf4j.Logger;
+import xyz.nucleoid.fantasy.storage.SingleDimensionLevelStorageSource;
 import xyz.nucleoid.fantasy.Fantasy;
 import xyz.nucleoid.fantasy.RuntimeWorldConfig;
 import xyz.nucleoid.fantasy.RuntimeWorldHandle;
 import xyz.nucleoid.fantasy.util.VoidChunkGenerator;
 
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
@@ -76,9 +80,8 @@ public final class FantasyInitializer implements ModInitializer {
 
                                             if (temp) {
                                                 x = Fantasy.get(source.getServer()).openTemporaryWorld(id, config);
-
                                             } else {
-                                                 x = Fantasy.get(source.getServer()).getOrOpenPersistentWorld(id, config);
+                                                x = Fantasy.get(source.getServer()).getOrOpenPersistentWorld(id, config);
                                             }
 
                                             source.sendSuccess(() -> Component.literal("WorldCreate: " + (System.currentTimeMillis() - ref.t)), false);
@@ -95,6 +98,48 @@ public final class FantasyInitializer implements ModInitializer {
                                         } catch (Throwable e) {
                                             LOGGER.error("Failed to open world", e);
                                             source.sendFailure(Component.literal("Failed to open world"));
+                                            return 0;
+                                        }
+                                    }))
+                            )
+            ));
+
+            dispatcher.register(literal("fantasy_load_external").then(
+                    argument("name", IdentifierArgument.id())
+                            .then(argument("path", StringArgumentType.greedyString())
+                                    .executes((context -> {
+                                        var source = context.getSource();
+                                        try {
+                                            var id = IdentifierArgument.getId(context, "name");
+                                            var path = StringArgumentType.getString(context, "path");
+
+                                            var ref = new Object() {
+                                                long t = System.currentTimeMillis();
+                                            };
+
+                                            var config = new RuntimeWorldConfig()
+                                                    .setGenerator(source.getServer().overworld().getChunkSource().getGenerator())
+                                                    .setDimensionType(source.getServer().overworld().dimensionTypeRegistration())
+                                                    .setSeed(id.hashCode());
+
+                                            var levelSource = new SingleDimensionLevelStorageSource(Path.of(path), new DirectoryValidator(it -> false), DataFixers.getDataFixer());
+
+                                            var x = Fantasy.get(source.getServer()).getOrOpenPersistentWorld(id, config, levelSource.validateAndCreateAccess(id.toDebugFileName()));
+
+                                            source.sendSuccess(() -> Component.literal("WorldCreate: " + (System.currentTimeMillis() - ref.t)), false);
+
+                                            this.worlds.put(id, x);
+
+                                            ref.t = System.currentTimeMillis();
+                                            if (source.getEntity() != null) {
+                                                source.getEntity().teleport(new TeleportTransition(x.asWorld(), new Vec3(0, 100, 0), Vec3.ZERO, 0, 0, TeleportTransition.DO_NOTHING));
+                                            }
+
+                                            source.sendSuccess(() -> Component.literal("Teleport: " + (System.currentTimeMillis() - ref.t)), false);
+                                            return 1;
+                                        } catch (Throwable e) {
+                                            LOGGER.error("Failed to load world", e);
+                                            source.sendFailure(Component.literal("Failed to load world"));
                                             return 0;
                                         }
                                     }))

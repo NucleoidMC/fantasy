@@ -1,6 +1,7 @@
 package xyz.nucleoid.fantasy;
 
 import com.google.common.base.Preconditions;
+import com.mojang.serialization.MapCodec;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
@@ -11,6 +12,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.chunk.ChunkGenerator;
 import net.minecraft.world.level.dimension.DimensionType;
 import net.minecraft.world.level.portal.TeleportTransition;
 import net.minecraft.world.level.storage.LevelData;
@@ -40,6 +42,8 @@ public final class Fantasy {
     public static final Logger LOGGER = LogManager.getLogger(Fantasy.class);
     public static final String ID = "fantasy";
     public static final ResourceKey<DimensionType> DEFAULT_DIM_TYPE = ResourceKey.create(Registries.DIMENSION_TYPE, Identifier.fromNamespaceAndPath(Fantasy.ID, "default"));
+    public static final ResourceKey<MapCodec<? extends ChunkGenerator>> VOID_CHUNK_GENERATOR = ResourceKey.create(Registries.CHUNK_GENERATOR, Identifier.fromNamespaceAndPath(Fantasy.ID, "void"));
+    public static final ResourceKey<MapCodec<? extends ChunkGenerator>> TRANSIENT_CHUNK_GENERATOR = ResourceKey.create(Registries.CHUNK_GENERATOR, Identifier.fromNamespaceAndPath(Fantasy.ID, "transient"));
 
     private static Fantasy instance;
 
@@ -145,6 +149,38 @@ public final class Fantasy {
      *
      * @param key the unique identifier for this dimension
      * @param config the config with which to construct this persistent world
+     * @param storageAccess the storage access to save the world to
+     * @return a future providing the created world
+     */
+    public RuntimeWorldHandle getOrOpenPersistentWorld(Identifier key, RuntimeWorldConfig config, LevelStorageSource.LevelStorageAccess storageAccess) {
+        ResourceKey<Level> worldKey = ResourceKey.create(Registries.DIMENSION, key);
+
+        ServerLevel world = this.server.getLevel(worldKey);
+        if (world == null) {
+            world = this.addPersistentWorld(key, config, storageAccess);
+        } else {
+            this.deletionQueue.remove(world);
+            this.unloadingQueue.remove(world);
+        }
+
+        return new RuntimeWorldHandle(this, world);
+    }
+
+    /**
+     * Gets or creates a new persistent world with the given identifier and {@link RuntimeWorldConfig}. These worlds
+     * will be saved to disk and can be restored after a server restart.
+     * <p>
+     * If a world with this identifier exists already, it will be returned and no new world will be constructed.
+     * <p>
+     * <b>Note!</b> These persistent worlds will not be automatically restored! This function
+     * must be called after a server restart with the relevant identifier and configuration such that it can be loaded.
+     * <p>
+     * The created world is returned asynchronously through a {@link RuntimeWorldHandle}.
+     * This handle can be used to acquire the {@link ServerLevel} object through {@link RuntimeWorldHandle#asWorld()},
+     * as well as to delete the world through {@link RuntimeWorldHandle#delete()}.
+     *
+     * @param key the unique identifier for this dimension
+     * @param config the config with which to construct this persistent world
      * @return a future providing the created world
      */
     public RuntimeWorldHandle getOrOpenPersistentWorld(Identifier key, RuntimeWorldConfig config) {
@@ -164,6 +200,11 @@ public final class Fantasy {
     private RuntimeWorld addPersistentWorld(Identifier key, RuntimeWorldConfig config) {
         ResourceKey<Level> worldKey = ResourceKey.create(Registries.DIMENSION, key);
         return this.worldManager.add(worldKey, config, RuntimeWorld.Style.PERSISTENT);
+    }
+
+    private RuntimeWorld addPersistentWorld(Identifier key, RuntimeWorldConfig config, LevelStorageSource.LevelStorageAccess storageAccess) {
+        ResourceKey<Level> worldKey = ResourceKey.create(Registries.DIMENSION, key);
+        return this.worldManager.add(worldKey, config, storageAccess);
     }
 
     private RuntimeWorld addTemporaryWorld(Identifier key, RuntimeWorldConfig config) {

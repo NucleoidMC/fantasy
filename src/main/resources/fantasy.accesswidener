@@ -2,3 +2,4 @@ accessWidener	v1	named
 
 accessible	class	net/minecraft/server/level/ChunkMap$TrackedEntity
 accessible	field	net/minecraft/server/level/ServerLevel	tickTime	Z
+accessible  method  net/minecraft/world/level/storage/LevelStorageSource$LevelStorageAccess <init> (Lnet/minecraft/world/level/storage/LevelStorageSource;Ljava/lang/String;Ljava/nio/file/Path;)V

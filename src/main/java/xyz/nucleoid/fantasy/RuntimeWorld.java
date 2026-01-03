@@ -24,9 +24,9 @@ public class RuntimeWorld extends ServerLevel {
     final Style style;
     private boolean flat;
 
-    protected RuntimeWorld(MinecraftServer server, ResourceKey<Level> registryKey, RuntimeWorldConfig config, Style style) {
+    protected RuntimeWorld(MinecraftServer server, ResourceKey<Level> registryKey, RuntimeWorldConfig config, LevelStorageSource.LevelStorageAccess storageAccess, Style style) {
         super(
-                server, Util.backgroundExecutor(), ((MinecraftServerAccess) server).getStorageSource(),
+                server, Util.backgroundExecutor(), storageAccess,
                 new RuntimeWorldProperties(server.getWorldData(), config),
                 registryKey,
                 config.createDimensionOptions(server),
@@ -45,7 +45,6 @@ public class RuntimeWorld extends ServerLevel {
         this.style = style;
     }
 
-
     @Override
     public long getSeed() {
         return ((RuntimeWorldProperties) this.levelData).config.getSeed();
@@ -59,8 +58,8 @@ public class RuntimeWorld extends ServerLevel {
     }
 
     /**
-    * Only use the time update code from super as the immutable world proerties runtime dimensions breaks scheduled functions
-    */
+     * Only use the time update code from super as the immutable world proerties runtime dimensions breaks scheduled functions
+     */
     @Override
     protected void tickTime() {
         if (this.tickTime) {
@@ -81,6 +80,6 @@ public class RuntimeWorld extends ServerLevel {
     }
 
     public interface Constructor {
-        RuntimeWorld createWorld(MinecraftServer server, ResourceKey<Level> registryKey, RuntimeWorldConfig config, Style style);
+        RuntimeWorld createWorld(MinecraftServer server, ResourceKey<Level> registryKey, RuntimeWorldConfig config, LevelStorageSource.LevelStorageAccess storageAccess, Style style);
     }
 }

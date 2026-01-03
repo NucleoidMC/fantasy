@@ -28,7 +28,7 @@ final class RuntimeWorldManager {
         this.serverAccess = (MinecraftServerAccess) server;
     }
 
-    RuntimeWorld add(ResourceKey<Level> worldKey, RuntimeWorldConfig config, RuntimeWorld.Style style) {
+    private RuntimeWorld add(ResourceKey<Level> worldKey, RuntimeWorldConfig config, LevelStorageSource.LevelStorageAccess storageAccess, RuntimeWorld.Style style) {
         LevelStem options = config.createDimensionOptions(this.server);
 
         if (style == RuntimeWorld.Style.TEMPORARY) {
@@ -41,12 +41,12 @@ final class RuntimeWorldManager {
         ((RemoveFromRegistry<?>) dimensionsRegistry).fantasy$setFrozen(false);
 
         var key = ResourceKey.create(Registries.LEVEL_STEM, worldKey.identifier());
-        if(!dimensionsRegistry.containsKey(key)) {
+        if (!dimensionsRegistry.containsKey(key)) {
             dimensionsRegistry.register(key, options, RegistrationInfo.BUILT_IN);
         }
         ((RemoveFromRegistry<?>) dimensionsRegistry).fantasy$setFrozen(isFrozen);
 
-        RuntimeWorld world = config.getWorldConstructor().createWorld(this.server, worldKey, config, style);
+        RuntimeWorld world = config.getWorldConstructor().createWorld(this.server, worldKey, config, storageAccess, style);
 
         this.serverAccess.getLevels().put(world.dimension(), world);
         ServerWorldEvents.LOAD.invoker().onWorldLoad(this.server, world);
@@ -55,6 +55,15 @@ final class RuntimeWorldManager {
         world.tick(() -> true);
 
         return world;
+    }
+
+    RuntimeWorld add(ResourceKey<Level> worldKey, RuntimeWorldConfig config,
+                     LevelStorageSource.LevelStorageAccess storageAccess) {
+        return this.add(worldKey, config, storageAccess, RuntimeWorld.Style.PERSISTENT);
+    }
+
+    RuntimeWorld add(ResourceKey<Level> worldKey, RuntimeWorldConfig config, RuntimeWorld.Style style) {
+        return this.add(worldKey, config, this.serverAccess.getStorageSource(), style);
     }
 
     void delete(ServerLevel world) {
@@ -88,19 +97,24 @@ final class RuntimeWorldManager {
         if (this.serverAccess.getLevels().remove(dimensionKey, world)) {
             world.save(new ProgressListener() {
                 @Override
-                public void progressStartNoAbort(Component title) {}
+                public void progressStartNoAbort(Component title) {
+                }
 
                 @Override
-                public void progressStart(Component title) {}
+                public void progressStart(Component title) {
+                }
 
                 @Override
-                public void progressStage(Component task) {}
+                public void progressStage(Component task) {
+                }
 
                 @Override
-                public void progressStagePercentage(int percentage) {}
+                public void progressStagePercentage(int percentage) {
+                }
 
                 @Override
-                public void stop() {}
+                public void stop() {
+                }
             }, true, false);
 
             ServerWorldEvents.UNLOAD.invoker().onWorldUnload(RuntimeWorldManager.this.server, world);
