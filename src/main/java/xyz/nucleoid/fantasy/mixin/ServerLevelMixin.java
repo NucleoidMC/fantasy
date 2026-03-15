@@ -7,7 +7,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import xyz.nucleoid.fantasy.FantasyWorldAccess;
+import xyz.nucleoid.fantasy.FantasyLevelAccess;
 
 import java.util.List;
 import java.util.function.BooleanSupplier;
@@ -18,7 +18,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.players.PlayerList;
 
 @Mixin(ServerLevel.class)
-public abstract class ServerLevelMixin implements FantasyWorldAccess {
+public abstract class ServerLevelMixin implements FantasyLevelAccess {
     @Unique
     private static final int TICK_TIMEOUT = 20 * 15;
 
@@ -40,7 +40,7 @@ public abstract class ServerLevelMixin implements FantasyWorldAccess {
 
     @Inject(method = "tick", at = @At("HEAD"), cancellable = true)
     private void tick(BooleanSupplier shouldKeepTicking, CallbackInfo ci) {
-        boolean shouldTick = this.fantasy$tickWhenEmpty || !this.isWorldEmpty();
+        boolean shouldTick = this.fantasy$tickWhenEmpty || !this.isLevelEmpty();
         if (shouldTick) {
             this.fantasy$tickTimeout = TICK_TIMEOUT;
         } else if (this.fantasy$tickTimeout-- <= 0) {
@@ -50,12 +50,12 @@ public abstract class ServerLevelMixin implements FantasyWorldAccess {
 
     @Override
     public boolean fantasy$shouldTick() {
-        boolean shouldTick = this.fantasy$tickWhenEmpty || !this.isWorldEmpty();
+        boolean shouldTick = this.fantasy$tickWhenEmpty || !this.isLevelEmpty();
         return shouldTick || this.fantasy$tickTimeout > 0;
     }
 
     @Unique
-    private boolean isWorldEmpty() {
+    private boolean isLevelEmpty() {
         return this.players().isEmpty() && this.getChunkSource().getLoadedChunksCount() <= 0;
     }
 
@@ -67,10 +67,11 @@ public abstract class ServerLevelMixin implements FantasyWorldAccess {
             )
 
     )
-    private void dontSendRainPacketsToAllWorlds(PlayerList instance, Packet<?> packet) {
+    private void dontSendRainPacketsToAllLevels(PlayerList instance, Packet<?> packet) {
         // Vanilla sends rain packets to all players when rain starts in a world,
         // even if they are not in it, meaning that if it is possible to rain in the world they are in
         // the rain effect will remain until the player changes dimension or reconnects.
+        // TODO: check if this still behaves the same following 26.1 changes
         instance.broadcastAll(packet, this.getChunkSource().getLevel().dimension());
     }
 }

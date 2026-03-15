@@ -6,7 +6,6 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.ProgressListener;
 import net.minecraft.util.Util;
-import net.minecraft.world.RandomSequences;
 import net.minecraft.world.level.CustomSpawner;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.biome.BiomeManager;
@@ -20,53 +19,54 @@ import xyz.nucleoid.fantasy.mixin.MinecraftServerAccess;
 import java.util.List;
 import java.util.concurrent.Executor;
 
-public class RuntimeWorld extends ServerLevel {
+public class RuntimeLevel extends ServerLevel {
     final Style style;
     private boolean flat;
+    @Nullable
+    private GameRules rules;
 
-    protected RuntimeWorld(MinecraftServer server, ResourceKey<Level> registryKey, RuntimeWorldConfig config, Style style) {
+    protected RuntimeLevel(MinecraftServer server, ResourceKey<Level> dimension, RuntimeLevelConfig config, Style style) {
         super(
                 server, Util.backgroundExecutor(), ((MinecraftServerAccess) server).getStorageSource(),
-                new RuntimeWorldProperties(server.getWorldData(), config),
-                registryKey,
+                new RuntimeLevelData(server.getWorldData(), config),
+                dimension,
                 config.createDimensionOptions(server),
                 false,
                 BiomeManager.obfuscateSeed(config.getSeed()),
                 ImmutableList.of(),
-                config.shouldTickTime(),
-                null
+                config.shouldTickTime()
         );
         this.style = style;
         this.flat = config.isFlat().orElse(super.isFlat());
+
+        if(!config.shouldMirrorOverworldGameRules()) {
+            this.rules = new GameRules(server.getWorldData().enabledFeatures());
+            config.getGameRules().applyTo(this.rules, null);
+        }
     }
 
-    protected RuntimeWorld(MinecraftServer server, Executor workerExecutor, LevelStorageSource.LevelStorageAccess session, ServerLevelData properties, ResourceKey<Level> worldKey, LevelStem dimensionOptions, boolean debugWorld, long seed, List<CustomSpawner> spawners, boolean shouldTickTime, @Nullable RandomSequences randomSequencesState, Style style) {
-        super(server, workerExecutor, session, properties, worldKey, dimensionOptions, debugWorld, seed, spawners, shouldTickTime, randomSequencesState);
+    protected RuntimeLevel(MinecraftServer server, Executor executor, LevelStorageSource.LevelStorageAccess levelStorage, ServerLevelData levelData, ResourceKey<Level> dimension, LevelStem levelStem, boolean isDebug, long biomeZoomSeed, List<CustomSpawner> customSpawners, boolean tickTime, Style style) {
+        super(server, executor, levelStorage, levelData, dimension, levelStem, isDebug, biomeZoomSeed, customSpawners, tickTime);
         this.style = style;
     }
 
+    @Override
+    public GameRules getGameRules() {
+        if(this.rules != null) {
+            return this.rules;
+        }
+        return super.getGameRules();
+    }
 
     @Override
     public long getSeed() {
-        return ((RuntimeWorldProperties) this.levelData).config.getSeed();
+        return ((RuntimeLevelData) this.levelData).config.getSeed();
     }
 
     @Override
     public void save(@Nullable ProgressListener progressListener, boolean flush, boolean enabled) {
         if (this.style == Style.PERSISTENT || !flush) {
             super.save(progressListener, flush, enabled);
-        }
-    }
-
-    /**
-    * Only use the time update code from super as the immutable world proerties runtime dimensions breaks scheduled functions
-    */
-    @Override
-    protected void tickTime() {
-        if (this.tickTime) {
-            if (this.getGameRules().get(GameRules.ADVANCE_TIME)) {
-                this.setDayTime(this.levelData.getDayTime() + 1L);
-            }
         }
     }
 
@@ -81,6 +81,6 @@ public class RuntimeWorld extends ServerLevel {
     }
 
     public interface Constructor {
-        RuntimeWorld createWorld(MinecraftServer server, ResourceKey<Level> registryKey, RuntimeWorldConfig config, Style style);
+        RuntimeLevel createLevel(MinecraftServer server, ResourceKey<Level> registryKey, RuntimeLevelConfig config, Style style);
     }
 }

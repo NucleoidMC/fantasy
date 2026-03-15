@@ -1,6 +1,6 @@
 package xyz.nucleoid.fantasy;
 
-import net.fabricmc.fabric.api.event.lifecycle.v1.ServerWorldEvents;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLevelEvents;
 import net.minecraft.core.MappedRegistry;
 import net.minecraft.core.RegistrationInfo;
 import net.minecraft.core.RegistryAccess;
@@ -19,19 +19,19 @@ import xyz.nucleoid.fantasy.mixin.MinecraftServerAccess;
 import java.io.File;
 import java.io.IOException;
 
-final class RuntimeWorldManager {
+final class RuntimeLevelManager {
     private final MinecraftServer server;
     private final MinecraftServerAccess serverAccess;
 
-    RuntimeWorldManager(MinecraftServer server) {
+    RuntimeLevelManager(MinecraftServer server) {
         this.server = server;
         this.serverAccess = (MinecraftServerAccess) server;
     }
 
-    RuntimeWorld add(ResourceKey<Level> worldKey, RuntimeWorldConfig config, RuntimeWorld.Style style) {
+    RuntimeLevel add(ResourceKey<Level> levelKey, RuntimeLevelConfig config, RuntimeLevel.Style style) {
         LevelStem options = config.createDimensionOptions(this.server);
 
-        if (style == RuntimeWorld.Style.TEMPORARY) {
+        if (style == RuntimeLevel.Style.TEMPORARY) {
             ((FantasyDimensionOptions) (Object) options).fantasy$setSave(false);
         }
         ((FantasyDimensionOptions) (Object) options).fantasy$setSaveProperties(false);
@@ -40,41 +40,41 @@ final class RuntimeWorldManager {
         boolean isFrozen = ((RemoveFromRegistry<?>) dimensionsRegistry).fantasy$isFrozen();
         ((RemoveFromRegistry<?>) dimensionsRegistry).fantasy$setFrozen(false);
 
-        var key = ResourceKey.create(Registries.LEVEL_STEM, worldKey.identifier());
+        var key = ResourceKey.create(Registries.LEVEL_STEM, levelKey.identifier());
         if(!dimensionsRegistry.containsKey(key)) {
             dimensionsRegistry.register(key, options, RegistrationInfo.BUILT_IN);
         }
         ((RemoveFromRegistry<?>) dimensionsRegistry).fantasy$setFrozen(isFrozen);
 
-        RuntimeWorld world = config.getWorldConstructor().createWorld(this.server, worldKey, config, style);
+        RuntimeLevel level = config.getLevelConstructor().createLevel(this.server, levelKey, config, style);
 
-        this.serverAccess.getLevels().put(world.dimension(), world);
-        ServerWorldEvents.LOAD.invoker().onWorldLoad(this.server, world);
+        this.serverAccess.getLevels().put(level.dimension(), level);
+        ServerLevelEvents.LOAD.invoker().onLevelLoad(this.server, level);
 
-        // tick the world to ensure it is ready for use right away
-        world.tick(() -> true);
+        // tick the level to ensure it is ready for use right away
+        level.tick(() -> true);
 
-        return world;
+        return level;
     }
 
-    void delete(ServerLevel world) {
-        ResourceKey<Level> dimensionKey = world.dimension();
+    void delete(ServerLevel level) {
+        ResourceKey<Level> dimensionKey = level.dimension();
 
-        if (this.serverAccess.getLevels().remove(dimensionKey, world)) {
-            ServerWorldEvents.UNLOAD.invoker().onWorldUnload(this.server, world);
+        if (this.serverAccess.getLevels().remove(dimensionKey, level)) {
+            ServerLevelEvents.UNLOAD.invoker().onLevelUnload(this.server, level);
 
             MappedRegistry<LevelStem> dimensionsRegistry = getDimensionsRegistry(this.server);
             RemoveFromRegistry.remove(dimensionsRegistry, dimensionKey.identifier());
 
             LevelStorageSource.LevelStorageAccess session = this.serverAccess.getStorageSource();
-            File worldDirectory = session.getDimensionPath(dimensionKey).toFile();
-            if (worldDirectory.exists()) {
+            File levelDirectory = session.getDimensionPath(dimensionKey).toFile();
+            if (levelDirectory.exists()) {
                 try {
-                    FileUtils.deleteDirectory(worldDirectory);
+                    FileUtils.deleteDirectory(levelDirectory);
                 } catch (IOException e) {
-                    Fantasy.LOGGER.warn("Failed to delete world directory", e);
+                    Fantasy.LOGGER.warn("Failed to delete level directory", e);
                     try {
-                        FileUtils.forceDeleteOnExit(worldDirectory);
+                        FileUtils.forceDeleteOnExit(levelDirectory);
                     } catch (IOException ignored) {
                     }
                 }
@@ -82,11 +82,11 @@ final class RuntimeWorldManager {
         }
     }
 
-    void unload(ServerLevel world) {
-        ResourceKey<Level> dimensionKey = world.dimension();
+    void unload(ServerLevel level) {
+        ResourceKey<Level> dimensionKey = level.dimension();
 
-        if (this.serverAccess.getLevels().remove(dimensionKey, world)) {
-            world.save(new ProgressListener() {
+        if (this.serverAccess.getLevels().remove(dimensionKey, level)) {
+            level.save(new ProgressListener() {
                 @Override
                 public void progressStartNoAbort(Component title) {}
 
@@ -103,9 +103,9 @@ final class RuntimeWorldManager {
                 public void stop() {}
             }, true, false);
 
-            ServerWorldEvents.UNLOAD.invoker().onWorldUnload(RuntimeWorldManager.this.server, world);
+            ServerLevelEvents.UNLOAD.invoker().onLevelUnload(RuntimeLevelManager.this.server, level);
 
-            MappedRegistry<LevelStem> dimensionsRegistry = getDimensionsRegistry(RuntimeWorldManager.this.server);
+            MappedRegistry<LevelStem> dimensionsRegistry = getDimensionsRegistry(RuntimeLevelManager.this.server);
             RemoveFromRegistry.remove(dimensionsRegistry, dimensionKey.identifier());
         }
     }
