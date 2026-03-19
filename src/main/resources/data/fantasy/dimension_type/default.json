@@ -15,5 +15,6 @@
   "bed_works": true,
   "has_skylight": true,
   "has_ceiling": false,
+  "has_ender_dragon_fight": false,
   "ultrawarm": false
 }

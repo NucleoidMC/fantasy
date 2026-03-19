@@ -14,7 +14,7 @@ import xyz.nucleoid.fantasy.FantasyWorldAccess;
 public class ServerChunkCacheMixin {
     @Shadow
     @Final
-    ServerLevel level;
+    private ServerLevel level;
 
     @Inject(method = "pollTask", at = @At("HEAD"), cancellable = true)
     private void executeQueuedTasks(CallbackInfoReturnable<Boolean> ci) {

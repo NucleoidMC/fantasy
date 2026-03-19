@@ -1,4 +1,6 @@
-accessWidener	v1	named
+accessWidener	v1	official
 
 accessible	class	net/minecraft/server/level/ChunkMap$TrackedEntity
 accessible	field	net/minecraft/server/level/ServerLevel	tickTime	Z
+accessible  field   net/minecraft/server/level/ServerLevel  serverLevelData     Lnet/minecraft/world/level/storage/ServerLevelData;
+extendable  class   net/minecraft/world/level/saveddata/WeatherData

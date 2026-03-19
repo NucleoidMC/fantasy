@@ -1,6 +1,6 @@
 package xyz.nucleoid.fantasy;
 
-import net.fabricmc.fabric.api.event.lifecycle.v1.ServerWorldEvents;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLevelEvents;
 import net.minecraft.core.MappedRegistry;
 import net.minecraft.core.RegistrationInfo;
 import net.minecraft.core.RegistryAccess;
@@ -49,7 +49,7 @@ final class RuntimeWorldManager {
         RuntimeWorld world = config.getWorldConstructor().createWorld(this.server, worldKey, config, style);
 
         this.serverAccess.getLevels().put(world.dimension(), world);
-        ServerWorldEvents.LOAD.invoker().onWorldLoad(this.server, world);
+        ServerLevelEvents.LOAD.invoker().onLevelLoad(this.server, world);
 
         // tick the world to ensure it is ready for use right away
         world.tick(() -> true);
@@ -61,7 +61,7 @@ final class RuntimeWorldManager {
         ResourceKey<Level> dimensionKey = world.dimension();
 
         if (this.serverAccess.getLevels().remove(dimensionKey, world)) {
-            ServerWorldEvents.UNLOAD.invoker().onWorldUnload(this.server, world);
+            ServerLevelEvents.UNLOAD.invoker().onLevelUnload(this.server, world);
 
             MappedRegistry<LevelStem> dimensionsRegistry = getDimensionsRegistry(this.server);
             RemoveFromRegistry.remove(dimensionsRegistry, dimensionKey.identifier());
@@ -103,7 +103,7 @@ final class RuntimeWorldManager {
                 public void stop() {}
             }, true, false);
 
-            ServerWorldEvents.UNLOAD.invoker().onWorldUnload(RuntimeWorldManager.this.server, world);
+            ServerLevelEvents.UNLOAD.invoker().onLevelUnload(RuntimeWorldManager.this.server, world);
 
             MappedRegistry<LevelStem> dimensionsRegistry = getDimensionsRegistry(RuntimeWorldManager.this.server);
             RemoveFromRegistry.remove(dimensionsRegistry, dimensionKey.identifier());

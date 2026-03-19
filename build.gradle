@@ -1,5 +1,5 @@
 plugins {
-  id 'fabric-loom' version '1.13.+'
+  id 'net.fabricmc.fabric-loom' version '1.15.+'
   id 'maven-publish'
 }
 
@@ -41,10 +41,8 @@ repositories {
 
 dependencies {
   minecraft "com.mojang:minecraft:${project.minecraft_version}"
-  mappings loom.officialMojangMappings()
-  modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
-
-  modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+  implementation "net.fabricmc:fabric-loader:${project.loader_version}"
+  implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 
   testmodImplementation sourceSets.main.output
 }
@@ -59,14 +57,14 @@ processResources {
 
 tasks.withType(JavaCompile).configureEach {
   it.options.encoding = "UTF-8"
-  it.options.release = 21
+  it.options.release = 25
 }
 
 java {
   withSourcesJar()
 
-  sourceCompatibility = JavaVersion.VERSION_21
-  targetCompatibility = JavaVersion.VERSION_21
+  sourceCompatibility = JavaVersion.VERSION_25
+  targetCompatibility = JavaVersion.VERSION_25
 }
 
 jar {
@@ -76,12 +74,7 @@ jar {
 publishing {
   publications {
     mavenJava(MavenPublication) {
-      artifact(remapJar) {
-        builtBy remapJar
-      }
-      artifact(sourcesJar) {
-        builtBy remapSourcesJar
-      }
+
     }
   }
 

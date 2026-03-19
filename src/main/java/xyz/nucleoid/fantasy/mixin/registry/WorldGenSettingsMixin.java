@@ -11,7 +11,7 @@ import xyz.nucleoid.fantasy.FantasyDimensionOptions;
 @Mixin(WorldGenSettings.class)
 public class WorldGenSettingsMixin {
 
-    @ModifyArg(method = "encode(Lcom/mojang/serialization/DynamicOps;Lnet/minecraft/world/level/levelgen/WorldOptions;Lnet/minecraft/world/level/levelgen/WorldDimensions;)Lcom/mojang/serialization/DataResult;", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/levelgen/WorldGenSettings;<init>(Lnet/minecraft/world/level/levelgen/WorldOptions;Lnet/minecraft/world/level/levelgen/WorldDimensions;)V"), index = 1)
+    @ModifyArg(method = "of", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/levelgen/WorldGenSettings;<init>(Lnet/minecraft/world/level/levelgen/WorldOptions;Lnet/minecraft/world/level/levelgen/WorldDimensions;)V"), index = 1)
     private static WorldDimensions fantasy$wrapWorldGenSettings(WorldDimensions original) {
         var dimensions = original.dimensions();
         var saveDimensions = Maps.filterEntries(dimensions, entry -> FantasyDimensionOptions.SAVE_PROPERTIES_PREDICATE.test(entry.getValue()));
