@@ -18,7 +18,6 @@ public class CustomLevel extends RuntimeLevel {
         this.recipeManager = new RecipeManager(server.registryAccess());
     }
 
-
     @Override
     public void tick(BooleanSupplier shouldKeepTicking) {
         this.dynSeed = this.random.nextLong();
