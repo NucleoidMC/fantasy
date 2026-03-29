@@ -15,6 +15,11 @@ public final class RuntimeLevelData extends DerivedLevelData {
     }
 
     @Override
+    public long getGameTime() {
+        return this.config.getGameTime();
+    }
+
+    @Override
     public void setGameTime(long time) {
         this.config.setGameTime(time);
     }

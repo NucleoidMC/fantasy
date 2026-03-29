@@ -2,3 +2,10 @@ accessWidener	v1	official
 
 accessible	class	net/minecraft/server/level/ChunkMap$TrackedEntity
 accessible	field	net/minecraft/server/level/ServerLevel	tickTime	Z
+accessible	class	net/minecraft/world/clock/ServerClockManager$ClockInstance
+accessible	class	net/minecraft/world/timeline/Timeline$TimeMarkerInfo
+accessible	method	net/minecraft/world/clock/ServerClockManager	<init>	(Lnet/minecraft/world/clock/PackedClockStates;)V
+accessible	method	net/minecraft/world/clock/ServerClockManager$ClockInstance	<init>	()V
+extendable	method	net/minecraft/world/clock/ServerClockManager	getInstance	(Lnet/minecraft/core/Holder;)Lnet/minecraft/world/clock/ServerClockManager$ClockInstance;
+extendable	method	net/minecraft/world/clock/ServerClockManager	modifyClock	(Lnet/minecraft/core/Holder;Ljava/util/function/Consumer;)V
+extendable	method	net/minecraft/world/clock/ServerClockManager	getGameTime	()J

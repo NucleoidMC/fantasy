@@ -10,12 +10,15 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.tags.TagKey;
+import net.minecraft.world.clock.WorldClock;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.dimension.DimensionType;
 import net.minecraft.world.level.portal.TeleportTransition;
 import net.minecraft.world.level.storage.LevelData;
 import net.minecraft.world.level.storage.LevelStorageSource;
 import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.timeline.Timeline;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.logging.log4j.LogManager;
@@ -40,6 +43,9 @@ public final class Fantasy {
     public static final Logger LOGGER = LogManager.getLogger(Fantasy.class);
     public static final String ID = "fantasy";
     public static final ResourceKey<DimensionType> DEFAULT_DIM_TYPE = ResourceKey.create(Registries.DIMENSION_TYPE, Identifier.fromNamespaceAndPath(Fantasy.ID, "default"));
+    public static final ResourceKey<Timeline> DEFAULT_TIMELINE = ResourceKey.create(Registries.TIMELINE, Identifier.fromNamespaceAndPath(ID, "default"));
+    public static final ResourceKey<WorldClock> DEFAULT_WORLD_CLOCK = ResourceKey.create(Registries.WORLD_CLOCK, Identifier.fromNamespaceAndPath(ID, "default"));
+    public static final TagKey<Timeline> DEFAULT_TIMELINES = TagKey.create(Registries.TIMELINE, Identifier.fromNamespaceAndPath(ID, "in_default"));
 
     private static Fantasy instance;
 

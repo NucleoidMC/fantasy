@@ -6,14 +6,10 @@ import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.minecraft.commands.arguments.IdentifierArgument;
-import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.biome.Biomes;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.dimension.BuiltinDimensionTypes;
 import net.minecraft.world.level.gamerules.GameRules;
 import net.minecraft.world.level.levelgen.FlatLevelSource;
@@ -58,7 +54,7 @@ public final class FantasyInitializer implements ModInitializer {
                     .setShouldTickTime(true));
         });
 
-        CommandRegistrationCallback.EVENT.register(((dispatcher, registryAccess, environment) -> {
+        CommandRegistrationCallback.EVENT.register(((dispatcher, _, _) -> {
             dispatcher.register(literal("fantasy_open").then(
                     argument("name", IdentifierArgument.id())
                             .then(argument("temp", BoolArgumentType.bool())

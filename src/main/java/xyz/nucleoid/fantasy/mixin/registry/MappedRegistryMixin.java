@@ -33,7 +33,7 @@ public abstract class MappedRegistryMixin<T> implements RemoveFromRegistry<T>, W
     @Shadow @Final private Map<ResourceKey<T>, RegistrationInfo> registrationInfos;
     @Shadow @Final private ObjectList<Holder.Reference<T>> byId;
     @Shadow @Final private Reference2IntMap<T> toId;
-    @Shadow @Final ResourceKey<? extends Registry<T>> key;
+    @Shadow @Final private ResourceKey<? extends Registry<T>> key;
     @Shadow private boolean frozen;
 
     @Override
