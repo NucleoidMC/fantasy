@@ -2,7 +2,7 @@ package xyz.nucleoid.fantasy.util;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import xyz.nucleoid.fantasy.RuntimeWorldConfig;
+import xyz.nucleoid.fantasy.RuntimeLevelConfig;
 
 import java.util.function.Function;
 import net.minecraft.core.Holder;
@@ -15,11 +15,11 @@ import net.minecraft.world.level.chunk.ChunkGenerator;
 
 /**
  * A {@link ChunkGenerator} instance that does not know how to be, and does not care to be serialized.
- * This is particularly useful when creating a temporary world with Fantasy.
+ * This is particularly useful when creating a temporary level with Fantasy.
  * <p>
- * If serialized, however, it will be loaded as a {@link VoidChunkGenerator void world}.
+ * If serialized, however, it will be loaded as a {@link VoidChunkGenerator void level}.
  *
- * @see xyz.nucleoid.fantasy.Fantasy#openTemporaryWorld(RuntimeWorldConfig)
+ * @see xyz.nucleoid.fantasy.Fantasy#openTemporaryLevel(RuntimeLevelConfig)
  */
 public abstract class TransientChunkGenerator extends ChunkGenerator {
     public static final MapCodec<? extends ChunkGenerator> CODEC = RecordCodecBuilder.mapCodec(i -> i.group(

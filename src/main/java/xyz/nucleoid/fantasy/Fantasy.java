@@ -10,12 +10,15 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.tags.TagKey;
+import net.minecraft.world.clock.WorldClock;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.dimension.DimensionType;
 import net.minecraft.world.level.portal.TeleportTransition;
 import net.minecraft.world.level.storage.LevelData;
 import net.minecraft.world.level.storage.LevelStorageSource;
 import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.timeline.Timeline;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.logging.log4j.LogManager;
@@ -33,20 +36,23 @@ import java.util.Set;
  * used across server restarts.
  *
  * @see Fantasy#get(MinecraftServer)
- * @see Fantasy#openTemporaryWorld(RuntimeWorldConfig)
- * @see Fantasy#getOrOpenPersistentWorld(Identifier, RuntimeWorldConfig)
+ * @see Fantasy#openTemporaryLevel(RuntimeLevelConfig)
+ * @see Fantasy#getOrOpenPersistentLevel(Identifier, RuntimeLevelConfig)
  */
 public final class Fantasy {
     public static final Logger LOGGER = LogManager.getLogger(Fantasy.class);
     public static final String ID = "fantasy";
     public static final ResourceKey<DimensionType> DEFAULT_DIM_TYPE = ResourceKey.create(Registries.DIMENSION_TYPE, Identifier.fromNamespaceAndPath(Fantasy.ID, "default"));
+    public static final ResourceKey<Timeline> DEFAULT_TIMELINE = ResourceKey.create(Registries.TIMELINE, Identifier.fromNamespaceAndPath(ID, "default"));
+    public static final ResourceKey<WorldClock> DEFAULT_WORLD_CLOCK = ResourceKey.create(Registries.WORLD_CLOCK, Identifier.fromNamespaceAndPath(ID, "default"));
+    public static final TagKey<Timeline> DEFAULT_TIMELINES = TagKey.create(Registries.TIMELINE, Identifier.fromNamespaceAndPath(ID, "in_default"));
 
     private static Fantasy instance;
 
     private final MinecraftServer server;
     private final MinecraftServerAccess serverAccess;
 
-    private final RuntimeWorldManager worldManager;
+    private final RuntimeLevelManager levelManager;
 
     private final Set<ServerLevel> deletionQueue = new ReferenceOpenHashSet<>();
     private final Set<ServerLevel> unloadingQueue = new ReferenceOpenHashSet<>();
@@ -67,7 +73,7 @@ public final class Fantasy {
         this.server = server;
         this.serverAccess = (MinecraftServerAccess) server;
 
-        this.worldManager = new RuntimeWorldManager(server);
+        this.levelManager = new RuntimeLevelManager(server);
     }
 
     /**
@@ -77,7 +83,7 @@ public final class Fantasy {
      * @return the {@link Fantasy} instance to work with runtime dimensions
      */
     public static Fantasy get(MinecraftServer server) {
-        Preconditions.checkState(server.isSameThread(), "cannot create worlds from off-thread!");
+        Preconditions.checkState(server.isSameThread(), "cannot create levels from off-thread!");
 
         if (instance == null || instance.server != server) {
             instance = new Fantasy(server);
@@ -89,178 +95,178 @@ public final class Fantasy {
     private void tick() {
         Set<ServerLevel> deletionQueue = this.deletionQueue;
         if (!deletionQueue.isEmpty()) {
-            deletionQueue.removeIf(this::tickDeleteWorld);
+            deletionQueue.removeIf(this::tickDeleteLevel);
         }
 
         Set<ServerLevel> unloadingQueue = this.unloadingQueue;
         if (!unloadingQueue.isEmpty()) {
-            unloadingQueue.removeIf(this::tickUnloadWorld);
+            unloadingQueue.removeIf(this::tickUnloadLevel);
         }
     }
 
     /**
-     * Creates a new temporary world with the given {@link RuntimeWorldConfig} that will not be saved and will be
+     * Creates a new temporary level with the given {@link RuntimeLevelConfig} that will not be saved and will be
      * deleted when the server exits.
      * <p>
-     * The created world is returned asynchronously through a {@link RuntimeWorldHandle}.
-     * This handle can be used to acquire the {@link ServerLevel} object through {@link RuntimeWorldHandle#asWorld()},
-     * as well as to delete the world through {@link RuntimeWorldHandle#delete()}.
+     * The created level is returned asynchronously through a {@link RuntimeLevelHandle}.
+     * This handle can be used to acquire the {@link ServerLevel} object through {@link RuntimeLevelHandle#asLevel()},
+     * as well as to delete the level through {@link RuntimeLevelHandle#delete()}.
      *
-     * @param config the config with which to construct this temporary world
-     * @return a future providing the created world
+     * @param config the config with which to construct this temporary level
+     * @return a future providing the created level
      */
-    public RuntimeWorldHandle openTemporaryWorld(RuntimeWorldConfig config) {
-        return this.openTemporaryWorld(generateTemporaryWorldKey(), config);
+    public RuntimeLevelHandle openTemporaryLevel(RuntimeLevelConfig config) {
+        return this.openTemporaryLevel(generateTemporaryLevelKey(), config);
     }
 
     /**
-     * Creates a new temporary world with the given identifier and {@link RuntimeWorldConfig} that will not be saved and will be
+     * Creates a new temporary level with the given identifier and {@link RuntimeLevelConfig} that will not be saved and will be
      * deleted when the server exits.
      * <p>
-     * The created world is returned asynchronously through a {@link RuntimeWorldHandle}.
-     * This handle can be used to acquire the {@link ServerLevel} object through {@link RuntimeWorldHandle#asWorld()},
-     * as well as to delete the world through {@link RuntimeWorldHandle#delete()}.
+     * The created level is returned asynchronously through a {@link RuntimeLevelHandle}.
+     * This handle can be used to acquire the {@link ServerLevel} object through {@link RuntimeLevelHandle#asLevel()},
+     * as well as to delete the level through {@link RuntimeLevelHandle#delete()}.
      *
      * @param key the unique identifier for this dimension
-     * @param config the config with which to construct this temporary world
-     * @return a future providing the created world
+     * @param config the config with which to construct this temporary level
+     * @return a future providing the created level
      */
-    public RuntimeWorldHandle openTemporaryWorld(Identifier key, RuntimeWorldConfig config) {
-        RuntimeWorld world = this.addTemporaryWorld(key, config);
-        return new RuntimeWorldHandle(this, world);
+    public RuntimeLevelHandle openTemporaryLevel(Identifier key, RuntimeLevelConfig config) {
+        RuntimeLevel level = this.addTemporaryLevel(key, config);
+        return new RuntimeLevelHandle(this, level);
     }
 
     /**
-     * Gets or creates a new persistent world with the given identifier and {@link RuntimeWorldConfig}. These worlds
+     * Gets or creates a new persistent level with the given identifier and {@link RuntimeLevelConfig}. These levels
      * will be saved to disk and can be restored after a server restart.
      * <p>
-     * If a world with this identifier exists already, it will be returned and no new world will be constructed.
+     * If a level with this identifier exists already, it will be returned and no new level will be constructed.
      * <p>
-     * <b>Note!</b> These persistent worlds will not be automatically restored! This function
+     * <b>Note!</b> These persistent levels will not be automatically restored! This function
      * must be called after a server restart with the relevant identifier and configuration such that it can be loaded.
      * <p>
-     * The created world is returned asynchronously through a {@link RuntimeWorldHandle}.
-     * This handle can be used to acquire the {@link ServerLevel} object through {@link RuntimeWorldHandle#asWorld()},
-     * as well as to delete the world through {@link RuntimeWorldHandle#delete()}.
+     * The created level is returned asynchronously through a {@link RuntimeLevelHandle}.
+     * This handle can be used to acquire the {@link ServerLevel} object through {@link RuntimeLevelHandle#asLevel()},
+     * as well as to delete the level through {@link RuntimeLevelHandle#delete()}.
      *
      * @param key the unique identifier for this dimension
-     * @param config the config with which to construct this persistent world
-     * @return a future providing the created world
+     * @param config the config with which to construct this persistent level
+     * @return a future providing the created level
      */
-    public RuntimeWorldHandle getOrOpenPersistentWorld(Identifier key, RuntimeWorldConfig config) {
-        ResourceKey<Level> worldKey = ResourceKey.create(Registries.DIMENSION, key);
+    public RuntimeLevelHandle getOrOpenPersistentLevel(Identifier key, RuntimeLevelConfig config) {
+        ResourceKey<Level> levelKey = ResourceKey.create(Registries.DIMENSION, key);
 
-        ServerLevel world = this.server.getLevel(worldKey);
-        if (world == null) {
-            world = this.addPersistentWorld(key, config);
+        ServerLevel level = this.server.getLevel(levelKey);
+        if (level == null) {
+            level = this.addPersistentLevel(key, config);
         } else {
-            this.deletionQueue.remove(world);
-            this.unloadingQueue.remove(world);
+            this.deletionQueue.remove(level);
+            this.unloadingQueue.remove(level);
         }
 
-        return new RuntimeWorldHandle(this, world);
+        return new RuntimeLevelHandle(this, level);
     }
 
-    private RuntimeWorld addPersistentWorld(Identifier key, RuntimeWorldConfig config) {
-        ResourceKey<Level> worldKey = ResourceKey.create(Registries.DIMENSION, key);
-        return this.worldManager.add(worldKey, config, RuntimeWorld.Style.PERSISTENT);
+    private RuntimeLevel addPersistentLevel(Identifier key, RuntimeLevelConfig config) {
+        ResourceKey<Level> levelKey = ResourceKey.create(Registries.DIMENSION, key);
+        return this.levelManager.add(levelKey, config, RuntimeLevel.Style.PERSISTENT);
     }
 
-    private RuntimeWorld addTemporaryWorld(Identifier key, RuntimeWorldConfig config) {
-        ResourceKey<Level> worldKey = ResourceKey.create(Registries.DIMENSION, key);
+    private RuntimeLevel addTemporaryLevel(Identifier key, RuntimeLevelConfig config) {
+        ResourceKey<Level> levelKey = ResourceKey.create(Registries.DIMENSION, key);
 
         try {
             LevelStorageSource.LevelStorageAccess session = this.serverAccess.getStorageSource();
-            FileUtils.forceDeleteOnExit(session.getDimensionPath(worldKey).toFile());
+            FileUtils.forceDeleteOnExit(session.getDimensionPath(levelKey).toFile());
         } catch (IOException ignored) {
         }
 
-        return this.worldManager.add(worldKey, config, RuntimeWorld.Style.TEMPORARY);
+        return this.levelManager.add(levelKey, config, RuntimeLevel.Style.TEMPORARY);
     }
 
-    void enqueueWorldDeletion(ServerLevel world) {
+    void enqueueLevelDeletion(ServerLevel level) {
         this.server.execute(() -> {
-            world.getChunkSource().deactivateTicketsOnClosing();
-            world.noSave = true;
-            this.kickPlayers(world);
-            this.deletionQueue.add(world);
+            level.getChunkSource().deactivateTicketsOnClosing();
+            level.noSave = true;
+            this.kickPlayers(level);
+            this.deletionQueue.add(level);
         });
     }
 
-    void enqueueWorldUnloading(ServerLevel world) {
+    void enqueueLevelUnloading(ServerLevel level) {
         this.server.execute(() -> {
-            world.noSave = false;
-            world.getChunkSource().deactivateTicketsOnClosing();
-            world.getChunkSource().tick(() -> true, false);
-            this.kickPlayers(world);
-            this.unloadingQueue.add(world);
+            level.noSave = false;
+            level.getChunkSource().deactivateTicketsOnClosing();
+            level.getChunkSource().tick(() -> true, false);
+            this.kickPlayers(level);
+            this.unloadingQueue.add(level);
         });
     }
 
-    public boolean tickDeleteWorld(ServerLevel world) {
-        //if (this.isWorldActive(world)) {
-        this.kickPlayers(world);
-        this.worldManager.delete(world);
+    public boolean tickDeleteLevel(ServerLevel level) {
+        //if (this.isLevelActive(level)) {
+        this.kickPlayers(level);
+        this.levelManager.delete(level);
         return true;
         //} else {
-        //    this.kickPlayers(world);
+        //    this.kickPlayers(level);
         //    return false;
         //}
     }
 
-    public boolean tickUnloadWorld(ServerLevel world) {
-        if (this.isWorldActive(world) && !world.getChunkSource().chunkMap.hasWork()) {
-            this.worldManager.unload(world);
+    public boolean tickUnloadLevel(ServerLevel level) {
+        if (this.isLevelActive(level) && !level.getChunkSource().chunkMap.hasWork()) {
+            this.levelManager.unload(level);
             return true;
         } else {
-            this.kickPlayers(world);
+            this.kickPlayers(level);
             return false;
         }
     }
 
-    private void kickPlayers(ServerLevel world) {
-        if (world.players().isEmpty()) {
+    private void kickPlayers(ServerLevel level) {
+        if (level.players().isEmpty()) {
             return;
         }
 
-        ServerLevel spawnWorld = this.server.findRespawnDimension();
+        ServerLevel spawnLevel = this.server.findRespawnDimension();
         LevelData.RespawnData spawnPoint = this.server.getRespawnData();
 
-        List<ServerPlayer> players = new ArrayList<>(world.players());
+        List<ServerPlayer> players = new ArrayList<>(level.players());
 
         for (ServerPlayer player : players) {
-            Vec3 pos = player.adjustSpawnLocation(spawnWorld, spawnPoint.pos()).getBottomCenter();
-            TeleportTransition target = new TeleportTransition(spawnWorld, pos, Vec3.ZERO, spawnPoint.yaw(), spawnPoint.pitch(), TeleportTransition.DO_NOTHING);
+            Vec3 pos = player.adjustSpawnLocation(spawnLevel, spawnPoint.pos()).getBottomCenter();
+            TeleportTransition target = new TeleportTransition(spawnLevel, pos, Vec3.ZERO, spawnPoint.yaw(), spawnPoint.pitch(), TeleportTransition.DO_NOTHING);
 
             player.teleport(target);
         }
     }
 
-    private boolean isWorldActive(ServerLevel world) {
-        return world.players().isEmpty() && world.getChunkSource().getLoadedChunksCount() <= 0;
+    private boolean isLevelActive(ServerLevel level) {
+        return level.players().isEmpty() && level.getChunkSource().getLoadedChunksCount() <= 0;
     }
 
     private void onServerStopping() {
-        List<RuntimeWorld> temporaryWorlds = this.collectTemporaryWorlds();
-        for (RuntimeWorld temporary : temporaryWorlds) {
+        List<RuntimeLevel> temporaryLevels = this.collectTemporaryLevels();
+        for (RuntimeLevel temporary : temporaryLevels) {
             this.kickPlayers(temporary);
-            this.worldManager.delete(temporary);
+            this.levelManager.delete(temporary);
         }
     }
 
-    private List<RuntimeWorld> collectTemporaryWorlds() {
-        List<RuntimeWorld> temporaryWorlds = new ArrayList<>();
-        for (ServerLevel world : this.server.getAllLevels()) {
-            if (world instanceof RuntimeWorld runtimeWorld) {
-                if (runtimeWorld.style == RuntimeWorld.Style.TEMPORARY) {
-                    temporaryWorlds.add(runtimeWorld);
+    private List<RuntimeLevel> collectTemporaryLevels() {
+        List<RuntimeLevel> temporaryLevels = new ArrayList<>();
+        for (ServerLevel level : this.server.getAllLevels()) {
+            if (level instanceof RuntimeLevel runtimeLevel) {
+                if (runtimeLevel.style == RuntimeLevel.Style.TEMPORARY) {
+                    temporaryLevels.add(runtimeLevel);
                 }
             }
         }
-        return temporaryWorlds;
+        return temporaryLevels;
     }
 
-    private static Identifier generateTemporaryWorldKey() {
+    private static Identifier generateTemporaryLevelKey() {
         String key = RandomStringUtils.random(16, "abcdefghijklmnopqrstuvwxyz0123456789");
         return Identifier.fromNamespaceAndPath(Fantasy.ID, key);
     }

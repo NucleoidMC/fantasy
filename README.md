@@ -26,12 +26,12 @@ Fantasy fantasy = Fantasy.get(server);
 // ...
 ```
 
-All dimensions created with Fantasy must be set up through a `RuntimeWorldConfig`.
+All dimensions created with Fantasy must be set up through a `RuntimeLevelConfig`.
 This specifies how the dimension should be created, involving a dimension type, seed, chunk generator, and so on.
 
 For example, we could create a config like such:
 ```java
-RuntimeWorldConfig worldConfig = new RuntimeWorldConfig()
+RuntimeLevelConfig levelConfig = new RuntimeLevelConfig()
         .setDimensionType(DimensionTypes.OVERWORLD)
         .setDifficulty(Difficulty.HARD)
         .setGameRule(GameRules.DO_DAYLIGHT_CYCLE, false)
@@ -39,37 +39,37 @@ RuntimeWorldConfig worldConfig = new RuntimeWorldConfig()
         .setSeed(1234L);
 ```
 
-Values such as difficulty, game rules, and weather can all be configured per-world. 
+World-wide values such as difficulty and game rules can be configured per-level. 
 
 #### Creating a temporary dimension
-Once we have a runtime world config, creating a temporary dimension is simple:
+Once we have a runtime level config, creating a temporary dimension is simple:
 ```java
-RuntimeWorldHandle worldHandle = fantasy.openTemporaryWorld(worldConfig);
+RuntimeLevelHandle levelHandle = fantasy.openTemporaryLevel(levelConfig);
 
-// set a block in our created temporary world!
-ServerWorld world = worldHandle.asWorld();
-world.setBlockState(BlockPos.ORIGIN, Blocks.STONE.getDefaultState());
+// set a block in our created temporary level!
+ServerLevel level = levelHandle.asLevel();
+level.setBlock(BlockPos.ZERO, Blocks.STONE.defaultBlockState(), Block.UPDATE_ALL);
 
-// we don't need the world anymore, delete it!
-worldHandle.delete();
+// we don't need the level anymore, delete it!
+levelHandle.delete();
 ```
-Explicit deletion is not strictly required for temporary worlds: they will be automatically cleaned up when the server exits.
-However, it is generally a good idea to delete old worlds if they're not in use anymore.
+Explicit deletion is not strictly required for temporary levels: they will be automatically cleaned up when the server exits.
+However, it is generally a good idea to delete old levels if they're not in use anymore.
 
 #### Creating a persistent dimension 
 Persistent dimensions work along very similar lines to temporary dimensions:
 
 ```java
-RuntimeWorldHandle worldHandle = fantasy.getOrOpenPersistentWorld(new Identifier("foo", "bar"), config);
+RuntimeLevelHandle levelHandle = fantasy.getOrOpenPersistentLevel(new Identifier("foo", "bar"), config);
 
-// set a block in our created persistent world!
-ServerWorld world = worldHandle.asWorld();
-world.setBlockState(BlockPos.ORIGIN, Blocks.STONE.getDefaultState());
+// set a block in our created persistent level!
+ServerLevel level = levelHandle.asLevel();
+level.setBlockState(BlockPos.ORIGIN, Blocks.STONE.getDefaultState());
 ```
 
 The main difference involves the addition of an `Identifier` parameter which much be specified to name your dimension uniquely.
 
-Another **very important note** with persistent dimensions is that `getOrOpenPersistentWorld` must be called to re-initialize
-the dimension after a game restart! Fantasy will not restore the dimension by itself- it only makes sure that the world data
+Another **very important note** with persistent dimensions is that `getOrOpenPersistentLevel` must be called to re-initialize
+the dimension after a game restart! Fantasy will not restore the dimension by itself- it only makes sure that the level data
 sticks around. This means, if you have a custom persistent dimension, you need to keep track of it and all its needed
-data such that it can be reconstructed by calling `getOrOpenPersistentWorld` again with the same identifier.
+data such that it can be reconstructed by calling `getOrOpenPersistentLevel` again with the same identifier.
