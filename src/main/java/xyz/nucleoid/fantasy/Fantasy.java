@@ -43,10 +43,6 @@ public final class Fantasy {
     public static final Logger LOGGER = LogManager.getLogger(Fantasy.class);
     public static final String ID = "fantasy";
     public static final ResourceKey<DimensionType> DEFAULT_DIM_TYPE = ResourceKey.create(Registries.DIMENSION_TYPE, Identifier.fromNamespaceAndPath(Fantasy.ID, "default"));
-    public static final ResourceKey<Timeline> DEFAULT_TIMELINE = ResourceKey.create(Registries.TIMELINE, Identifier.fromNamespaceAndPath(ID, "default"));
-    public static final ResourceKey<WorldClock> DEFAULT_WORLD_CLOCK = ResourceKey.create(Registries.WORLD_CLOCK, Identifier.fromNamespaceAndPath(ID, "default"));
-    public static final TagKey<Timeline> DEFAULT_TIMELINES = TagKey.create(Registries.TIMELINE, Identifier.fromNamespaceAndPath(ID, "in_default"));
-
     private static Fantasy instance;
 
     private final MinecraftServer server;

@@ -5,19 +5,16 @@
   "compatibilityLevel": "JAVA_25",
   "mixins": [
     "ChunkMapMixin",
-    "DimensionTypeMixin",
+    "clock.ClockInstanceAccessor",
     "MinecraftServerAccess",
     "MinecraftServerMixin",
-    "PlayerListMixin",
-    "SavedDataStorageMixin",
+    "clock.PlayerListMixin",
     "ServerChunkCacheMixin",
-    "ServerClockManagerMixin",
+    "clock.ServerClockManagerMixin",
     "ServerLevelMixin",
     "TimeCommandMixin",
-    "TimelineAccess",
     "registry.LevelStemMixin",
     "registry.MappedRegistryMixin",
-    "registry.RegistryLoadTaskMixin",
     "registry.WorldGenSettingsMixin"
   ],
   "injectors": {

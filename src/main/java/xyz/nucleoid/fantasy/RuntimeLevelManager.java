@@ -113,30 +113,6 @@ final class RuntimeLevelManager {
 
     private void unregister(RuntimeLevel level, ResourceKey<Level> dimensionKey, MappedRegistry<LevelStem> dimensionsRegistry, boolean alwaysDelete) {
         RemoveFromRegistry.remove(dimensionsRegistry, dimensionKey.identifier());
-        RuntimeServerClockManager.WORLD_CLOCKS_2_LEVEL.remove(level.worldClock);
-        level.clockManager().unloadedClocks.add(level.worldClock);
-
-        if (level.style.equals(RuntimeLevel.Style.TEMPORARY) || alwaysDelete) {
-            level.clockManager().fantasy$getClocks().remove(level.worldClock);
-            level.clockManager().fantasy$getPackedClockStates().clocks().remove(level.worldClock);
-            level.clockManager().temporaryClocks.remove(level.worldClock);
-            RuntimeServerClockManager.DIMENSION_TYPE_2_WORLD_CLOCKS.remove(level.dimensionType());
-            RuntimeServerClockManager.DIMENSION_TYPE_2_TIMELINES.remove(level.dimensionType());
-            RuntimeServerClockManager.WORLD_CLOCKS.remove(level.worldClock);
-        }
-
-        Registry<WorldClock> worldClockRegistry = this.server.registryAccess()
-                .lookupOrThrow(Registries.WORLD_CLOCK);
-        Registry<Timeline> timelineRegistry = this.server.registryAccess()
-                .lookupOrThrow(Registries.TIMELINE);
-
-        if (!level.worldClock.is(Fantasy.DEFAULT_WORLD_CLOCK) && level.style.equals(RuntimeLevel.Style.TEMPORARY)) {
-            ((RemoveFromRegistry<WorldClock>) worldClockRegistry).fantasy$remove(level.worldClock.value());
-        }
-
-        if (!level.timeline.is(Fantasy.DEFAULT_TIMELINE)) {
-            ((RemoveFromRegistry<Timeline>) timelineRegistry).fantasy$remove(level.timeline.value());
-        }
     }
 
     private static MappedRegistry<LevelStem> getDimensionsRegistry(MinecraftServer server) {

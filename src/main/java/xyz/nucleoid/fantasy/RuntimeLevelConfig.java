@@ -7,15 +7,20 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.Difficulty;
-import net.minecraft.world.clock.WorldClock;
+import net.minecraft.world.clock.PackedClockStates;
+import net.minecraft.world.clock.ServerClockManager;
 import net.minecraft.world.level.chunk.ChunkGenerator;
 import net.minecraft.world.level.dimension.DimensionType;
 import net.minecraft.world.level.dimension.LevelStem;
 import net.minecraft.world.level.gamerules.GameRule;
 import net.minecraft.world.level.gamerules.GameRules;
-import net.minecraft.world.timeline.Timeline;
 import org.jetbrains.annotations.Nullable;
 import xyz.nucleoid.fantasy.util.GameRuleStore;
+
+import java.util.Map;
+import java.util.function.BiFunction;
+import java.util.function.BooleanSupplier;
+import java.util.function.Function;
 
 /**
  * A configuration describing how a runtime level should be constructed. This includes properties such as the dimension
@@ -33,7 +38,9 @@ public final class RuntimeLevelConfig {
     private final GameRuleStore gameRules = new GameRuleStore();
     private boolean mirrorOverworldGameRules = false;
     private boolean mirrorOverworldDifficulty = false;
+    private boolean mirrorOverworldClocks = false;
     private RuntimeLevel.Constructor levelConstructor = RuntimeLevel::new;
+    private Function<BooleanSupplier, RuntimeClockManager> clockManagerConstructor = s -> new RuntimeClockManager(PackedClockStates.EMPTY, s);
 
     private long gameTime = 0;
     private TriState flat = TriState.DEFAULT;
@@ -59,6 +66,30 @@ public final class RuntimeLevelConfig {
      */
     public RuntimeLevelConfig setLevelConstructor(RuntimeLevel.Constructor constructor) {
         this.levelConstructor = constructor;
+        return this;
+    }
+
+    /**
+     * Sets the clock manager constructor to {@link RuntimeClockManager} with provided clock states as the default.
+     *
+     * @param clockStates The clock states to initialize the clock manager from
+     *
+     * @return The same instance of {@link RuntimeLevelConfig}
+     */
+    public RuntimeLevelConfig setClockManagerConstructor(PackedClockStates clockStates) {
+        this.clockManagerConstructor = s -> new RuntimeClockManager(clockStates, s);
+        return this;
+    }
+
+    /**
+     * Sets the clock manager constructor
+     *
+     * @param clockManagerConstructor The clock manager constructor to use
+     *
+     * @return The same instance of {@link RuntimeLevelConfig}
+     */
+    public RuntimeLevelConfig setClockManagerConstructor(Function<BooleanSupplier, RuntimeClockManager> clockManagerConstructor) {
+        this.clockManagerConstructor = clockManagerConstructor;
         return this;
     }
 
@@ -200,6 +231,18 @@ public final class RuntimeLevelConfig {
     }
 
     /**
+     * Defines if the level should follow the overworld clock values or not
+     *
+     * @param mirror Whenever it should mirror or not
+     *
+     * @return The same instance of {@link RuntimeLevelConfig}
+     */
+    public RuntimeLevelConfig setMirrorOverworldClocks(boolean mirror) {
+        this.mirrorOverworldClocks = mirror;
+        return this;
+    }
+
+    /**
      * Defines if the level is a flat level or not
      *
      * @param state If the level should be flat, not flat or use the default value
@@ -293,11 +336,26 @@ public final class RuntimeLevelConfig {
         return this.mirrorOverworldDifficulty;
     }
 
+    public boolean shouldMirrorOverworldClocks() {
+        return this.mirrorOverworldClocks;
+    }
+
     public long getGameTime() {
         return this.gameTime;
     }
 
     public TriState isFlat() {
         return this.flat;
+    }
+
+    public ServerClockManager getClockManager(MinecraftServer server, GameRules gameRules) {
+        if (this.mirrorOverworldClocks) {
+            return server.clockManager();
+        }
+
+        var t = this.clockManagerConstructor.apply(() -> gameRules.get(GameRules.ADVANCE_TIME));
+        t.init(server);
+
+        return t;
     }
 }

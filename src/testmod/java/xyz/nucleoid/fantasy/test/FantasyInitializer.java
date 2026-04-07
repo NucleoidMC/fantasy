@@ -41,6 +41,7 @@ public final class FantasyInitializer implements ModInitializer {
             );
 
             Fantasy.get(s).openTemporaryLevel(
+                    Identifier.fromNamespaceAndPath("fantasy_test", "temp_overworld_timeless"),
                     new RuntimeLevelConfig().setGenerator(s.overworld().getChunkSource().getGenerator()).setLevelConstructor(CustomLevel::new)
             );
 
@@ -48,13 +49,20 @@ public final class FantasyInitializer implements ModInitializer {
             var flat = new FlatLevelGeneratorSettings(Optional.empty(), biome, List.of());
             var generator = new FlatLevelSource(flat);
 
-            Fantasy.get(s).openTemporaryLevel(new RuntimeLevelConfig()
+            Fantasy.get(s).openTemporaryLevel(
+                    Identifier.fromNamespaceAndPath("fantasy_test", "temp_overworld"),
+                    new RuntimeLevelConfig()
                     .setDimensionType(BuiltinDimensionTypes.OVERWORLD)
                     .setGenerator(generator)
                     .setShouldTickTime(true));
         });
 
         CommandRegistrationCallback.EVENT.register(((dispatcher, _, _) -> {
+            dispatcher.register(literal("fantasy_where").executes((context -> {
+                context.getSource().sendSystemMessage(Component.literal(context.getSource().getLevel().dimension().identifier() + " / " + context.getSource().getLevel().getClass().getName()));
+                return 1;
+            })));
+
             dispatcher.register(literal("fantasy_open").then(
                     argument("name", IdentifierArgument.id())
                             .then(argument("temp", BoolArgumentType.bool())
