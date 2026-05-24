@@ -7,8 +7,10 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.Difficulty;
+import net.minecraft.world.clock.ClockState;
 import net.minecraft.world.clock.PackedClockStates;
 import net.minecraft.world.clock.ServerClockManager;
+import net.minecraft.world.clock.WorldClock;
 import net.minecraft.world.level.chunk.ChunkGenerator;
 import net.minecraft.world.level.dimension.DimensionType;
 import net.minecraft.world.level.dimension.LevelStem;
@@ -17,6 +19,7 @@ import net.minecraft.world.level.gamerules.GameRules;
 import org.jetbrains.annotations.Nullable;
 import xyz.nucleoid.fantasy.util.GameRuleStore;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.function.BiFunction;
 import java.util.function.BooleanSupplier;
@@ -40,7 +43,8 @@ public final class RuntimeLevelConfig {
     private boolean mirrorOverworldDifficulty = false;
     private boolean mirrorOverworldClocks = false;
     private RuntimeLevel.Constructor levelConstructor = RuntimeLevel::new;
-    private Function<BooleanSupplier, RuntimeClockManager> clockManagerConstructor = s -> new RuntimeClockManager(PackedClockStates.EMPTY, s);
+    private BiFunction<PackedClockStates, BooleanSupplier, RuntimeClockManager> clockManagerConstructor = (c, s) -> new RuntimeClockManager(c, s);
+    private final Map<ResourceKey<WorldClock>, ClockState> clockState = new HashMap<>();
 
     private long gameTime = 0;
     private TriState flat = TriState.DEFAULT;
@@ -77,7 +81,7 @@ public final class RuntimeLevelConfig {
      * @return The same instance of {@link RuntimeLevelConfig}
      */
     public RuntimeLevelConfig setClockManagerConstructor(PackedClockStates clockStates) {
-        this.clockManagerConstructor = s -> new RuntimeClockManager(clockStates, s);
+        this.clockManagerConstructor = (_, s) -> new RuntimeClockManager(clockStates, s);
         return this;
     }
 
@@ -89,7 +93,36 @@ public final class RuntimeLevelConfig {
      * @return The same instance of {@link RuntimeLevelConfig}
      */
     public RuntimeLevelConfig setClockManagerConstructor(Function<BooleanSupplier, RuntimeClockManager> clockManagerConstructor) {
+        this.clockManagerConstructor = (_, s) -> clockManagerConstructor.apply(s);
+        return this;
+    }
+
+    /**
+     * Sets the clock manager constructor
+     *
+     * @param clockManagerConstructor The clock manager constructor to use
+     *
+     * @return The same instance of {@link RuntimeLevelConfig}
+     */
+    public RuntimeLevelConfig setClockManagerConstructor(BiFunction<PackedClockStates, BooleanSupplier, RuntimeClockManager> clockManagerConstructor) {
         this.clockManagerConstructor = clockManagerConstructor;
+        return this;
+    }
+
+    public RuntimeLevelConfig setClockTime(ResourceKey<WorldClock> clock, int time) {
+        return this.setClockTime(clock, new ClockState(time, 0, 1, false));
+    }
+
+    public RuntimeLevelConfig setClockTime(ResourceKey<WorldClock> clock, int time, float rate) {
+        return this.setClockTime(clock, new ClockState(time, 0, rate, false));
+    }
+
+    public RuntimeLevelConfig setClockTime(ResourceKey<WorldClock> clock, int time, boolean paused) {
+        return this.setClockTime(clock, new ClockState(time, 0, 1, paused));
+    }
+
+    public RuntimeLevelConfig setClockTime(ResourceKey<WorldClock> clock, ClockState state) {
+        this.clockState.put(clock, state);
         return this;
     }
 
@@ -193,8 +226,6 @@ public final class RuntimeLevelConfig {
 
     /**
      * Modifies a gamerule
-     * <br/>
-     * <b>Does nothing if {@link RuntimeLevelConfig#mirrorOverworldGameRules} is true</b>
      *
      * @param key The gamerule to modify
      * @param value The value of the gamerule
@@ -239,6 +270,13 @@ public final class RuntimeLevelConfig {
      */
     public RuntimeLevelConfig setMirrorOverworldClocks(boolean mirror) {
         this.mirrorOverworldClocks = mirror;
+        return this;
+    }
+
+    public RuntimeLevelConfig mirrorOverworldGameState() {
+        this.setMirrorOverworldGameRules(true);
+        this.setMirrorOverworldClocks(true);
+        this.setMirrorOverworldDifficulty(true);
         return this;
     }
 
@@ -352,8 +390,16 @@ public final class RuntimeLevelConfig {
         if (this.mirrorOverworldClocks) {
             return server.clockManager();
         }
+        PackedClockStates states = PackedClockStates.EMPTY;
+        if (!this.clockState.isEmpty()) {
+            var map = new HashMap<Holder<WorldClock>, ClockState>();
+            for (var entry : this.clockState.entrySet()) {
+                map.put(server.registryAccess().getOrThrow(entry.getKey()), entry.getValue());
+            }
+            states = new PackedClockStates(map);
+        }
 
-        var t = this.clockManagerConstructor.apply(() -> gameRules.get(GameRules.ADVANCE_TIME));
+        var t = this.clockManagerConstructor.apply(states, () -> gameRules.get(GameRules.ADVANCE_TIME));
         t.init(server);
 
         return t;

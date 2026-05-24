@@ -5,14 +5,15 @@
   "compatibilityLevel": "JAVA_25",
   "mixins": [
     "ChunkMapMixin",
-    "clock.ClockInstanceAccessor",
+    "GameRulesAccessor",
     "MinecraftServerAccess",
     "MinecraftServerMixin",
-    "clock.PlayerListMixin",
     "ServerChunkCacheMixin",
-    "clock.ServerClockManagerMixin",
     "ServerLevelMixin",
     "TimeCommandMixin",
+    "clock.ClockInstanceAccessor",
+    "clock.PlayerListMixin",
+    "clock.ServerClockManagerMixin",
     "registry.LevelStemMixin",
     "registry.MappedRegistryMixin",
     "registry.WorldGenSettingsMixin"

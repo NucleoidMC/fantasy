@@ -13,14 +13,16 @@ public final class GameRuleStore {
         this.rules.put(key, value);
     }
 
-
-
     public <T>T get(GameRule<T> key) {
         return (T) this.rules.get(key);
     }
 
     public boolean contains(GameRule<?> key) {
         return this.rules.containsKey(key);
+    }
+
+    public boolean isEmpty() {
+        return this.rules.isEmpty();
     }
 
     public void applyTo(GameRules rules, @Nullable MinecraftServer server) {

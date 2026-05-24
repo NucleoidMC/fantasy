@@ -31,11 +31,14 @@ public class RuntimeLevel extends ServerLevel {
     protected RuntimeLevel(MinecraftServer server, ResourceKey<Level> dimension, RuntimeLevelConfig config, Style style) {
         LevelStem dimensionOptions = config.createDimensionOptions(server);
         GameRules gameRules = null;
-        if (!config.shouldMirrorOverworldGameRules()) {
+        if (!config.getGameRules().isEmpty() && config.shouldMirrorOverworldGameRules()) {
+            gameRules = new DelegatingGameRules(server.getGameRules());
+        } else if (!config.shouldMirrorOverworldGameRules()) {
             gameRules = new GameRules(server.getWorldData().enabledFeatures());
+        }
+
+        if (gameRules != null) {
             config.getGameRules().applyTo(gameRules, null);
-        } else {
-            gameRules = null;
         }
 
         this.clockManager = config.getClockManager(server, gameRules != null ? gameRules : server.getGameRules());

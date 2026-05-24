@@ -10,7 +10,6 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.tags.TagKey;
 import net.minecraft.world.clock.WorldClock;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.dimension.DimensionType;
@@ -18,7 +17,6 @@ import net.minecraft.world.level.portal.TeleportTransition;
 import net.minecraft.world.level.storage.LevelData;
 import net.minecraft.world.level.storage.LevelStorageSource;
 import net.minecraft.world.phys.Vec3;
-import net.minecraft.world.timeline.Timeline;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.logging.log4j.LogManager;
@@ -42,7 +40,16 @@ import java.util.Set;
 public final class Fantasy {
     public static final Logger LOGGER = LogManager.getLogger(Fantasy.class);
     public static final String ID = "fantasy";
+    /**
+     * Default builtin dimension, using its own timelines and world clocks {@link #DEFAULT_CLOCK}.
+     */
     public static final ResourceKey<DimensionType> DEFAULT_DIM_TYPE = ResourceKey.create(Registries.DIMENSION_TYPE, Identifier.fromNamespaceAndPath(Fantasy.ID, "default"));
+    public static final ResourceKey<WorldClock> DEFAULT_CLOCK = ResourceKey.create(Registries.WORLD_CLOCK, Identifier.fromNamespaceAndPath(Fantasy.ID, "default"));
+
+    /**
+     * Default builtin dimension, but using overworld's timelines and world clock {@link net.minecraft.world.clock.WorldClocks#OVERWORLD}.
+     */
+    public static final ResourceKey<DimensionType> DEFAULT_OVERWORLD_DIM_TYPE = ResourceKey.create(Registries.DIMENSION_TYPE, Identifier.fromNamespaceAndPath(Fantasy.ID, "default_overworld"));
     private static Fantasy instance;
 
     private final MinecraftServer server;

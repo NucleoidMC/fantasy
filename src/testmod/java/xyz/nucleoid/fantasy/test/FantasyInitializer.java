@@ -9,6 +9,7 @@ import net.minecraft.commands.arguments.IdentifierArgument;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
+import net.minecraft.world.clock.WorldClocks;
 import net.minecraft.world.level.biome.Biomes;
 import net.minecraft.world.level.dimension.BuiltinDimensionTypes;
 import net.minecraft.world.level.gamerules.GameRules;
@@ -43,6 +44,16 @@ public final class FantasyInitializer implements ModInitializer {
             Fantasy.get(s).openTemporaryLevel(
                     Identifier.fromNamespaceAndPath("fantasy_test", "temp_overworld_timeless"),
                     new RuntimeLevelConfig().setGenerator(s.overworld().getChunkSource().getGenerator()).setLevelConstructor(CustomLevel::new)
+            );
+
+            Fantasy.get(s).openTemporaryLevel(
+                    Identifier.fromNamespaceAndPath("fantasy_test", "temp_overworld_timed"),
+                    new RuntimeLevelConfig().setGenerator(s.overworld().getChunkSource().getGenerator())
+                            .setDimensionType(Fantasy.DEFAULT_OVERWORLD_DIM_TYPE)
+                            .setMirrorOverworldGameRules(true)
+                            .setGameRule(GameRules.BLOCK_DROPS, false)
+                            .setClockTime(WorldClocks.OVERWORLD, 1200, true)
+                            .setLevelConstructor(CustomLevel::new)
             );
 
             var biome = s.registryAccess().lookupOrThrow(Registries.BIOME).getOrThrow(Biomes.PLAINS);
