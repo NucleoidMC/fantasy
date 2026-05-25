@@ -69,6 +69,11 @@ public class VoidChunkGenerator extends ChunkGenerator {
         public void fillArray(double[] ds, ContextProvider arg) { }
 
         @Override
+        public DensityFunction mapChildren(Visitor visitor) {
+            return this;
+        }
+
+        @Override
         public DensityFunction mapAll(Visitor visitor) {
             return this;
         }
