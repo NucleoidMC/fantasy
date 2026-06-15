@@ -238,7 +238,7 @@ public final class Fantasy {
         List<ServerPlayer> players = new ArrayList<>(level.players());
 
         for (ServerPlayer player : players) {
-            Vec3 pos = player.adjustSpawnLocation(spawnLevel, spawnPoint.pos()).getBottomCenter();
+            Vec3 pos = Vec3.atBottomCenterOf(player.adjustSpawnLocation(spawnLevel, spawnPoint.pos()));
             TeleportTransition target = new TeleportTransition(spawnLevel, pos, Vec3.ZERO, spawnPoint.yaw(), spawnPoint.pitch(), TeleportTransition.DO_NOTHING);
 
             player.teleport(target);
