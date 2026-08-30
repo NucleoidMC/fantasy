@@ -55,6 +55,9 @@ final class RuntimeLevelManager {
         // tick the level to ensure it is ready for use right away
         level.tick(() -> true);
 
+        this.server.getPlayerList().addWorldborderListener(level);
+        level.getWorldBorder().setAbsoluteMaxSize(this.server.getAbsoluteMaxWorldSize());
+
         return level;
     }
 
