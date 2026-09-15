@@ -15,7 +15,8 @@ public class CustomLevel extends RuntimeLevel {
 
     protected CustomLevel(MinecraftServer server, ResourceKey<Level> registryKey, RuntimeLevelConfig config, Style style) {
         super(server, registryKey, config, style);
-        this.recipeManager = new RecipeManager(server.registryAccess());
+        this.recipeManager = new RecipeManager(server.reloadableRegistries().lookup());
+        this.recipeManager.finalizeRecipeLoading(server.getWorldData().enabledFeatures());
     }
 
     @Override
