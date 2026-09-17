@@ -9,7 +9,6 @@ import net.minecraft.world.clock.ClockNetworkState;
 import net.minecraft.world.clock.PackedClockStates;
 import net.minecraft.world.clock.ServerClockManager;
 import net.minecraft.world.clock.WorldClock;
-import xyz.nucleoid.fantasy.mixin.clock.ClockInstanceAccessor;
 
 import java.util.Map;
 import java.util.function.BooleanSupplier;
@@ -33,14 +32,14 @@ public class RuntimeClockManager extends ServerClockManager {
     @Override
     public void tick() {
         if (this.advanceTime.getAsBoolean()) {
-            ((ServerClockManagerExtension) this).fantasy$getClocks().values().forEach(ClockInstance::tick);
+            ((ServerClockManagerExtension) this).fantasy$getClocks().values().forEach(ServerClockInstance::tick);
             this.setDirty();
         }
     }
 
     @Override
-    protected void modifyClock(final Holder<WorldClock> clock, final Consumer<? super ClockInstance> action) {
-        ClockInstance instance = this.getInstance(clock);
+    protected void modifyClock(final Holder<WorldClock> clock, final Consumer<? super ServerClockInstance> action) {
+        ServerClockInstance instance = this.getInstance(clock);
         action.accept(instance);
         Map<Holder<WorldClock>, ClockNetworkState> updates = Map.of(clock, this.packNetworkState(instance, this.server));
         this.setDirty();
@@ -63,10 +62,9 @@ public class RuntimeClockManager extends ServerClockManager {
         return new ClientboundSetTimePacket(this.getGameTime(), Util.mapValues(((ServerClockManagerExtension) this).fantasy$getClocks(), (clock) -> this.packNetworkState(clock, this.server)));
     }
 
-    protected ClockNetworkState packNetworkState(ClockInstance instance, final MinecraftServer server) {
-        var i = (ClockInstanceAccessor) instance;
-        boolean paused = i.isPaused() || !this.advanceTime.getAsBoolean();
-        return new ClockNetworkState(i.getTotalTicks(), i.getPartialTick(), paused ? 0.0F : i.getRate());
+    protected ClockNetworkState packNetworkState(ServerClockInstance instance, final MinecraftServer server) {
+        boolean paused = instance.isPaused() || !this.advanceTime.getAsBoolean();
+        return new ClockNetworkState(instance.totalTicks(), instance.partialTick(), paused ? 0.0F : instance.rate());
     }
 
     public void tickFromLevel(RuntimeLevel level) {
