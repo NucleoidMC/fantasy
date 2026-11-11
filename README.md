@@ -32,10 +32,10 @@ This specifies how the dimension should be created, involving a dimension type, 
 For example, we could create a config like such:
 ```java
 RuntimeLevelConfig levelConfig = new RuntimeLevelConfig()
-        .setDimensionType(DimensionTypes.OVERWORLD)
+        .setDimensionType(BuiltinDimensionTypes.OVERWORLD)
         .setDifficulty(Difficulty.HARD)
-        .setGameRule(GameRules.DO_DAYLIGHT_CYCLE, false)
-        .setGenerator(server.getOverworld().getChunkManager().getChunkGenerator())
+        .setGameRule(GameRules.ADVANCE_TIME, false)
+        .setGenerator(server.overworld().getChunkSource().getGenerator())
         .setSeed(1234L);
 ```
 
@@ -60,14 +60,14 @@ However, it is generally a good idea to delete old levels if they're not in use 
 Persistent dimensions work along very similar lines to temporary dimensions:
 
 ```java
-RuntimeLevelHandle levelHandle = fantasy.getOrOpenPersistentLevel(new Identifier("foo", "bar"), config);
+RuntimeLevelHandle levelHandle = fantasy.getOrOpenPersistentLevel(Identifier.fromNamespaceAndPath("foo", "bar"), levelConfig);
 
 // set a block in our created persistent level!
 ServerLevel level = levelHandle.asLevel();
-level.setBlockState(BlockPos.ORIGIN, Blocks.STONE.getDefaultState());
+level.setBlock(BlockPos.ZERO, Blocks.STONE.defaultBlockState(), Block.UPDATE_ALL);
 ```
 
-The main difference involves the addition of an `Identifier` parameter which much be specified to name your dimension uniquely.
+The main difference involves the addition of an `Identifier` parameter which must be specified to name your dimension uniquely.
 
 Another **very important note** with persistent dimensions is that `getOrOpenPersistentLevel` must be called to re-initialize
 the dimension after a game restart! Fantasy will not restore the dimension by itself- it only makes sure that the level data
