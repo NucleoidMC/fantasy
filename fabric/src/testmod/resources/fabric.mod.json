@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "id": "fantasy_test",
+  "version": "${version}",
+  "name": "Fantasy TestMod",
+  "description": "Test mod for Fantasy.",
+  "authors": ["${mod_author}"],
+  "license": "${license}",
+  "environment": "*",
+  "entrypoints": {
+    "main": ["xyz.nucleoid.fantasy.test.FantasyTestFabric"]
+  },
+  "depends": {
+    "fantasy": "*"
+  }
+}

@@ -1,0 +1,99 @@
+plugins {
+  id 'java-library'
+  id 'maven-publish'
+}
+
+version = "${mod_version}+${minecraft_version}"
+group = maven_group
+
+base {
+  // Fabric keeps the original artifact name (xyz.nucleoid:fantasy) so existing dependents don't break.
+  // The others are fantasy-common and fantasy-neoforge.
+  archivesName = project.name == 'fabric' ? mod_id : "${mod_id}-${project.name}"
+}
+
+java {
+  toolchain.languageVersion = JavaLanguageVersion.of(java_version)
+  withSourcesJar()
+}
+
+tasks.withType(JavaCompile).configureEach {
+  it.options.encoding = 'UTF-8'
+  it.options.release = java_version as int
+}
+
+tasks.withType(Jar).configureEach {
+  from(rootProject.file('LICENSE')) {
+    rename { "${it}_${mod_name}" }
+  }
+}
+
+jar {
+  manifest {
+    attributes([
+        'Specification-Title'   : mod_name,
+        'Specification-Vendor'  : mod_author,
+        'Specification-Version' : project.jar.archiveVersion,
+        'Implementation-Title'  : project.name,
+        'Implementation-Version': project.jar.archiveVersion,
+        'Implementation-Vendor' : mod_author,
+        'Built-On-Minecraft'    : minecraft_version
+    ])
+  }
+}
+
+tasks.withType(ProcessResources).configureEach {
+  var expandProps = [
+      'version'                         : version,
+      'mod_id'                          : mod_id,
+      'mod_name'                        : mod_name,
+      'mod_author'                      : mod_author,
+      'license'                         : license,
+      'description'                     : project.description,
+      'java_version'                    : java_version,
+      'minecraft_version'               : minecraft_version,
+      'fabric_loader_version'           : fabric_loader_version,
+      'fabric_minecraft_version_range'  : fabric_minecraft_version_range,
+      'neoforge_version'                : neoforge_version,
+      'neoforge_loader_version_range'   : neoforge_loader_version_range,
+      'neoforge_minecraft_version_range': neoforge_minecraft_version_range,
+  ]
+
+  var jsonExpandProps = expandProps.collectEntries {
+    key, value -> [(key): value instanceof String ? value.replace('\n', '\\\\n') : value]
+  }
+
+  filesMatching(['META-INF/neoforge.mods.toml']) {
+    expand expandProps
+  }
+
+  filesMatching(['fabric.mod.json']) {
+    expand jsonExpandProps
+  }
+
+  inputs.properties(expandProps)
+}
+
+publishing {
+  publications {
+    register('mavenJava', MavenPublication) {
+      artifactId base.archivesName.get()
+      from components.java
+    }
+  }
+
+  repositories {
+    def env = System.getenv()
+    if (env.MAVEN_URL) {
+      maven {
+        credentials {
+          username env.MAVEN_USERNAME
+          password env.MAVEN_PASSWORD
+        }
+        url env.MAVEN_URL
+      }
+    } else {
+      mavenLocal()
+    }
+  }
+}

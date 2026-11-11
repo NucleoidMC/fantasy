@@ -1,0 +1,17 @@
+modLoader = "javafml"
+loaderVersion = "${neoforge_loader_version_range}"
+license = "${license}"
+
+[[mods]]
+modId = "fantasy_test"
+version = "${version}"
+displayName = "Fantasy TestMod"
+authors = "${mod_author}"
+description = '''Test mod for Fantasy.'''
+
+[[dependencies.fantasy_test]]
+modId = "fantasy"
+type = "required"
+versionRange = "*"
+ordering = "AFTER"
+side = "BOTH"

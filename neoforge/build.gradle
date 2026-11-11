@@ -1,0 +1,69 @@
+plugins {
+  id 'multiloader-loader'
+  id 'net.neoforged.moddev'
+}
+
+neoForge {
+  version = neoforge_version
+  // Automatically enable NeoForge AccessTransformers if the file exists
+  def at = project(':common').file('src/main/resources/META-INF/accesstransformer.cfg')
+  if (at.exists()) {
+    accessTransformers.from(at.absolutePath)
+  }
+  mods {
+    "${mod_id}" {
+      sourceSet sourceSets.main
+    }
+    fantasy_test {
+      sourceSet sourceSets.testmod
+    }
+  }
+  runs {
+    configureEach {
+      ideName = "NeoForge ${it.name.capitalize()} (${project.path})" // Unify the run config names with fabric
+    }
+    client {
+      client()
+      loadedMods = [mods."${mod_id}"]
+      gameDirectory = this.mkdir(this.file('runs/client'))
+    }
+    server {
+      server()
+      loadedMods = [mods."${mod_id}"]
+      this.file('runs/server').createParentDirectories()
+      gameDirectory = this.mkdir(this.file('runs/server'))
+    }
+    testmodClient {
+      client()
+      sourceSet = sourceSets.testmod
+      loadedMods = [mods."${mod_id}", mods.fantasy_test]
+      gameDirectory = this.mkdir(this.file('runs/client'))
+    }
+    testmodServer {
+      server()
+      sourceSet = sourceSets.testmod
+      loadedMods = [mods."${mod_id}", mods.fantasy_test]
+      this.file('runs/server').createParentDirectories()
+      gameDirectory = this.mkdir(this.file('runs/server'))
+    }
+  }
+}
+
+// Implement mcgradleconventions loader attribute
+def loaderAttribute = Attribute.of('io.github.mcgradleconventions.loader', String)
+['apiElements', 'runtimeElements', 'sourcesElements'].each { variant ->
+  configurations.named(variant) {
+    attributes {
+      attribute(loaderAttribute, 'neoforge')
+    }
+  }
+}
+sourceSets.configureEach {
+  [it.compileClasspathConfigurationName, it.runtimeClasspathConfigurationName, it.getTaskName(null, 'jarJar')].each { variant ->
+    configurations.named(variant) {
+      attributes {
+        attribute(loaderAttribute, 'neoforge')
+      }
+    }
+  }
+}

@@ -2,11 +2,23 @@
 Fantasy is a library that allows for dimensions to be created and destroyed at runtime on the server.
 It supports both temporary dimensions which do not get saved, as well as persistent dimensions which can be safely used across server restarts.
 
+Fantasy is available for both Fabric and NeoForge.
+
 ## Using
 
 ### Adding to Gradle
-To add Fantasy to your Gradle project, add the Nucleoid Maven repository and Fantasy dependency.
-`FANTASY_VERSION` should be replaced with the latest version from [Maven](https://maven.nucleoid.xyz/xyz/nucleoid/fantasy).
+To add Fantasy to your Gradle project, add the Nucleoid Maven repository and the Fantasy artifact for your mod loader.
+
+| Mod loader | Artifact |
+|---|---|
+| Fabric | `xyz.nucleoid:fantasy` |
+| NeoForge | `xyz.nucleoid:fantasy-neoforge` |
+| Loader-independent code (e.g. a multiloader `common` project) | `xyz.nucleoid:fantasy-common` |
+
+`FANTASY_VERSION` should be replaced with the latest version from Maven
+([Fabric](https://maven.nucleoid.xyz/xyz/nucleoid/fantasy), [NeoForge](https://maven.nucleoid.xyz/xyz/nucleoid/fantasy-neoforge)).
+The API is the same on every loader.
+
 ```gradle
 repositories {
   maven { url = 'https://maven.nucleoid.xyz/' }
@@ -14,9 +26,15 @@ repositories {
 
 dependencies {
   // ...
-  modImplementation 'xyz.nucleoid:fantasy:FANTASY_VERSION'
+  // Fabric
+  implementation 'xyz.nucleoid:fantasy:FANTASY_VERSION'
+  // or NeoForge
+  implementation 'xyz.nucleoid:fantasy-neoforge:FANTASY_VERSION'
 }
 ```
+
+In a multiloader project, add `compileOnly 'xyz.nucleoid:fantasy-common:FANTASY_VERSION'` to the `common` project,
+and the loader-specific artifact to each loader project.
 
 ### Creating Runtime Dimensions
 All access to Fantasy's APIs goes through the `Fantasy` object, which can be acquired given a `MinecraftServer` instance.
@@ -73,3 +91,16 @@ Another **very important note** with persistent dimensions is that `getOrOpenPer
 the dimension after a game restart! Fantasy will not restore the dimension by itself- it only makes sure that the level data
 sticks around. This means, if you have a custom persistent dimension, you need to keep track of it and all its needed
 data such that it can be reconstructed by calling `getOrOpenPersistentLevel` again with the same identifier.
+
+## Development
+Fantasy is a multiloader project, based on [MultiLoader-Template](https://github.com/jaredlll08/MultiLoader-Template):
+
+- `common`: almost all of Fantasy. It is compiled against vanilla Minecraft only, so it cannot use any Fabric or NeoForge APIs.
+  Code that needs one goes through the `FantasyPlatform` service, which each loader implements.
+- `fabric` and `neoforge`: each loader's entrypoint, `FantasyPlatform` implementation, mod metadata and any loader-only mixins.
+- `common/src/testmod`: a test mod with the `/fantasy_open`, `/fantasy_where`, `/fantasy_unload` and `/fantasy_delete` commands.
+  It is shared between both loaders, and runs with the `Testmod Client` / `Testmod Server` run configurations.
+
+Access changes are needed in two files that must be kept in sync: `fantasy.accesswidener` (Fabric) and `META-INF/accesstransformer.cfg` (NeoForge), both in `common/src/main/resources`.
+
+Gradle must be run with Java 25 or newer. `./gradlew build` builds both loaders.
