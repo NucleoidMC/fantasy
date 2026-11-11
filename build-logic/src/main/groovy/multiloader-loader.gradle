@@ -1,0 +1,62 @@
+plugins {
+  id 'multiloader-common'
+}
+
+sourceSets {
+  testmod {
+    compileClasspath += main.compileClasspath + main.output
+    runtimeClasspath += main.runtimeClasspath + main.output
+  }
+}
+
+configurations {
+  commonJava {
+    canBeResolved = true
+  }
+  commonResources {
+    canBeResolved = true
+  }
+  commonTestmodJava {
+    canBeResolved = true
+  }
+}
+
+dependencies {
+  compileOnly(project(':common')) {
+    def loaderAttribute = Attribute.of('io.github.mcgradleconventions.loader', String)
+    attributes {
+      attribute(loaderAttribute, 'common')
+    }
+  }
+  commonJava(project(path: ':common', configuration: 'commonJava'))
+  commonResources(project(path: ':common', configuration: 'commonResources'))
+  testmodCompileOnly(project(path: ':common', configuration: 'commonTestmodElements'))
+  commonTestmodJava(project(path: ':common', configuration: 'commonTestmodJava'))
+}
+
+tasks.named('compileJava', JavaCompile) {
+  dependsOn(configurations.commonJava)
+  source(configurations.commonJava)
+}
+
+tasks.named('compileTestmodJava', JavaCompile) {
+  dependsOn(configurations.commonTestmodJava)
+  source(configurations.commonTestmodJava)
+}
+
+processResources {
+  dependsOn(configurations.commonResources)
+  from(configurations.commonResources)
+}
+
+tasks.named('javadoc', Javadoc).configure {
+  dependsOn(configurations.commonJava)
+  source(configurations.commonJava)
+}
+
+tasks.named('sourcesJar', Jar) {
+  dependsOn(configurations.commonJava)
+  from(configurations.commonJava)
+  dependsOn(configurations.commonResources)
+  from(configurations.commonResources)
+}

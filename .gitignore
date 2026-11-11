@@ -30,6 +30,7 @@ bin/
 # fabric
 
 run/
+runs/
 
 ci_version.json
 

@@ -39,5 +39,5 @@ jobs:
       - name: Upload GitHub release
         uses: AButler/upload-release-assets@v3.0
         with:
-          files: 'build/libs/*.jar;!build/libs/*-sources.jar;!build/libs/*-dev.jar'
+          files: 'fabric/build/libs/*.jar;neoforge/build/libs/*.jar;!**/*-sources.jar;!**/*-dev.jar'
           repo-token: ${{ secrets.GITHUB_TOKEN }}

@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "id": "${mod_id}",
+  "version": "${version}",
+  "name": "${mod_name}",
+  "description": "${description}",
+  "authors": ["${mod_author}"],
+  "license": "${license}",
+  "environment": "*",
+  "entrypoints": {
+    "main": ["xyz.nucleoid.fantasy.FantasyInitializer"]
+  },
+  "mixins": ["fantasy.mixins.json", "fantasy.fabric.mixins.json"],
+  "accessWidener": "fantasy.accesswidener",
+  "icon": "icon.png",
+  "custom": {
+    "modmenu": {
+      "badges": ["library"]
+    }
+  },
+  "depends": {
+    "fabricloader": ">=${fabric_loader_version}",
+    "minecraft": "${fabric_minecraft_version_range}",
+    "fabric-api": "*",
+    "java": ">=${java_version}"
+  }
+}
